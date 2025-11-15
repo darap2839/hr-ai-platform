@@ -1,4 +1,4 @@
-# hr-ai-platform/backend/app/models/match.py
+# hr-ai-platform/hr-backend-service/app/models/match.py
 from sqlalchemy import Column, Integer, Float, String, ForeignKey, JSON
 from app.database import Base
 

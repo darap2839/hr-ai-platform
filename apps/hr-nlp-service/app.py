@@ -1,4 +1,4 @@
-# nlp-service/app.py
+# hr-nlp-service/app.py
 from fastapi import FastAPI, HTTPException
 import spacy
 import ollama

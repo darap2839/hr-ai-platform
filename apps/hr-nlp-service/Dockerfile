@@ -1,4 +1,4 @@
-# nlp-service/Dockerfile
+# hr-nlp-service/Dockerfile
 FROM python:3.10
 
 WORKDIR /app

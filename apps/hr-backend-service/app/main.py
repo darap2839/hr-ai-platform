@@ -1,4 +1,4 @@
-# backend/app/main.py
+# hr-backend-service/app/main.py
 from fastapi import FastAPI, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
 from app import models, schemas

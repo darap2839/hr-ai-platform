@@ -1,4 +1,4 @@
-# backend/app/api/candidates.py
+# hr-backend-service/app/api/candidates.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app import models, schemas

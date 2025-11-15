@@ -1,4 +1,4 @@
-# hr-ai-platform/backend/app/models/job.py
+# hr-ai-platform/hr-backend-service/app/models/job.py
 from sqlalchemy import Column, Integer, String, JSON
 from app.database import Base
 

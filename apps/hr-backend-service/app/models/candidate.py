@@ -1,4 +1,4 @@
-# backend/app/models/candidate.py
+# hr-backend-service/app/models/candidate.py
 from sqlalchemy import Column, Integer, String, JSON
 from app.database import Base
 
