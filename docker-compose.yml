@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: jobmatch_user
       POSTGRES_PASSWORD: secure_password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ./data/psql:/var/lib/postgresql/data
 
@@ -37,5 +37,5 @@ services:
     image: hr-platform/hr-web-service
     build: apps/hr-web-service
     ports:
-      - 80:80
-      - 443:443
+      - "80:80"
+      - "443:443"
