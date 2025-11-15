@@ -1,0 +1,35 @@
+# hr-ai-platform/docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: jobmatch_ai
+      POSTGRES_USER: jobmatch_user
+      POSTGRES_PASSWORD: secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://jobmatch_user:secure_password@db:5432/jobmatch_ai
+      NLP_SERVICE_URL: http://nlp-service:8001
+    depends_on:
+      - db
+      - nlp-service
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  nlp-service:
+    build: ./nlp-service
+    ports:
+      - "8001:8001"
+
+volumes:
+  postgres_data:
