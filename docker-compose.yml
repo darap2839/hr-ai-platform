@@ -2,6 +2,7 @@
 services:
   psql:
     image: hr-platform/hr-psql-service
+    build: apps/hr-psql-service
     environment:
       POSTGRES_DB: jobmatch_ai
       POSTGRES_USER: jobmatch_user
@@ -18,15 +19,23 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://jobmatch_user:secure_password@hr-psql-service:5432/jobmatch_ai
-      NLP_SERVICE_URL: http://nlp-service:8001
-    depends_on:
-      - db
-      - nlp
+      NLP_SERVICE_URL: http://nlp:8001
     volumes:
       - ./data/uploads:/app/uploads
 
-  nlp:
-    image: hr-platform/hr-nlp-service
-    build: apps/hr-nlp-service
+#  nlp:
+#    image: hr-platform/hr-nlp-service
+#    build: apps/hr-nlp-service
+#    ports:
+#      - "8001:8001"
+
+  nginx:
+    image: hr-platform/hr-nginx-service
+    build: apps/hr-nginx-service
+
+  web:
+    image: hr-platform/hr-web-service
+    build: apps/hr-web-service
     ports:
-      - "8001:8001"
+      - 80:80
+      - 443:443
