@@ -1,18 +1,20 @@
 # hr-ai-platform/docker-compose.yml
 services:
   psql:
+    container_name: psql
     image: hr-platform/hr-psql-service
     build: apps/hr-psql-service
     environment:
-      POSTGRES_DB: jobmatch_ai
-      POSTGRES_USER: jobmatch_user
-      POSTGRES_PASSWORD: secure_password
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
     ports:
       - "5433:5432"
     volumes:
       - ./data/psql:/var/lib/postgresql/data
 
   backend:
+    container_name: backend
     image: hr-platform/hr-backend-service
     build: apps/hr-backend-service
     ports:
@@ -23,19 +25,21 @@ services:
     volumes:
       - ./data/uploads:/app/uploads
 
-#  nlp:
-#    image: hr-platform/hr-nlp-service
-#    build: apps/hr-nlp-service
-#    ports:
-#      - "8001:8001"
+  nlp:
+    image: hr-platform/hr-nlp-service
+    build: apps/hr-nlp-service
+    ports:
+      - "8001:8001"
 
   nginx:
+    container_name: nginx
     image: hr-platform/hr-nginx-service
     build: apps/hr-nginx-service
-
-  web:
-    image: hr-platform/hr-web-service
-    build: apps/hr-web-service
     ports:
       - "80:80"
       - "443:443"
+
+  web:
+    container_name: web
+    image: hr-platform/hr-web-service
+    build: apps/hr-web-service
