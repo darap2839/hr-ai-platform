@@ -1,5 +1,55 @@
 # hr-ai-platform/docker-compose.yml
 services:
+  analytics:
+    container_name: analytics
+    image: hr-platform/hr-analytics-service
+    build: apps/hr-analytics-service
+
+  api:
+    container_name: api
+    image: hr-platform/hr-api-service
+    build: apps/hr-api-service
+
+  etl:
+    container_name: etl
+    image: hr-platform/hr-etl-service
+    build: apps/hr-etl-service
+
+  job:
+    container_name: job
+    image: hr-platform/hr-job-service
+    build: apps/hr-job-service
+
+  matching:
+    container_name: matching
+    image: hr-platform/hr-matching-service
+    build: apps/hr-matching-service
+
+  nginx:
+    container_name: nginx
+    image: hr-platform/hr-nginx-service
+    build: apps/hr-nginx-service
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./conf:/etc/nginx/templates/
+
+  nlp:
+    container_name: nlp
+    image: hr-platform/hr-nlp-service
+    build: apps/hr-nlp-service
+
+  ontology:
+    container_name: ontology
+    image: hr-platform/hr-ontology-service
+    build: apps/hr-ontology-service
+
+  web:
+    container_name: web
+    image: hr-platform/hr-web-service
+    build: apps/hr-web-service
+
   psql:
     container_name: psql
     image: hr-platform/hr-psql-service
@@ -12,30 +62,3 @@ services:
       - "5433:5432"
     volumes:
       - ./data/psql:/var/lib/postgresql/data
-
-  backend:
-    container_name: backend
-    image: hr-platform/hr-backend-service
-    build: apps/hr-backend-service
-    volumes:
-      - ./data/uploads:/app/uploads
-
-  nlp:
-    container_name: nlp
-    image: hr-platform/hr-nlp-service
-    build: apps/hr-nlp-service
-
-  nginx:
-    container_name: nginx
-    image: hr-platform/hr-nginx-service
-    build: apps/hr-nginx-service
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./conf:/etc/nginx/templates/
-
-  web:
-    container_name: web
-    image: hr-platform/hr-web-service
-    build: apps/hr-web-service
