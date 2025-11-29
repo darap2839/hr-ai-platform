@@ -44,3 +44,8 @@ def explain_match(request: ExplainRequest):
     if request.candidate and request.job:
         return {"status": "ok", "explanation": "Объяснение сгенерировано (тест)"}
     return {"status": "не ок", "explanation": "Некорректные данные"}
+
+if __name__ == "__main__":
+    import uvicorn
+    print("Запуск FastAPI сервера на 0.0.0.0:8001...")
+    uvicorn.run("app:app", host="0.0.0.0", port=8001, log_level="info")
