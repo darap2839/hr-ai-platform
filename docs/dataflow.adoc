@@ -1,67 +1,61 @@
-= HR AI Platform - Data Flow Diagram
-:toc:
-:toclevels: 2
+[mermaid]
+----
+graph TD
+    subgraph Web
+        hr_web_service[hr-web-service]
+    end
 
-[plantuml,dataflow,png]
-....
-@startuml
-' --- Сервисы ---
-package "Web" as WEB {
-  [Frontend]
-  [HR UI]
-  [Dashboards]
-}
+    subgraph API
+        hr_api_service[hr-api-service]
+    end
 
-package "API" as API {
-  [API Gateway]
-  [Routing]
-}
+    subgraph ETL
+        hr_etl_service[hr-etl-service]
+    end
 
-package "ETL" as ETL {
-  [Ingestion]
-  [Parsing / OCR]
-  [Normalization]
-}
+    subgraph Jobs
+        hr_job_service[hr-job-service]
+    end
 
-package "Job Service" as JOB {
-  [Jobs CRUD]
-  [Skills/Requirements]
-  [Competencies]
-}
+    subgraph Matching
+        hr_matching_service[hr-matching-service]
+    end
 
-package "Matching" as MATCH {
-  [Candidate Match]
-  [Score Calculation]
-  [Ranking]
-}
+    subgraph Analytics
+        hr_analytics_service[hr-analytics-service]
+    end
 
-package "Analytics" as ANALYTICS {
-  [Visualization]
-  [Reports / Metrics]
-}
+    subgraph NLP
+        hr_nlp_service[hr-nlp-service]
+    end
 
-package "Ontology" as ONTO {
-  [Skills / Jobs Dictionary]
-}
+    subgraph Ontology
+        hr_ontology_service[hr-ontology-service]
+    end
 
-package "DB" as PSQL {
-  [PostgreSQL]
-  [Resumes, Jobs, Matches]
-}
+    subgraph DB
+        hr_psql_service[hr-psql-service]
+    end
 
-' --- Потоки данных ---
-[Frontend] --> [API Gateway] : REST
-[API Gateway] --> [Ingestion] : Upload resumes
-[API Gateway] --> [Jobs CRUD] : Jobs CRUD
-[API Gateway] --> [Candidate Match] : Match requests
-[API Gateway] --> [Visualization] : Analytics requests
+    subgraph Proxy
+        hr_nginx_service[hr-nginx-service]
+    end
 
-[Ingestion] --> [PostgreSQL] : Save resumes
-[Jobs CRUD] --> [PostgreSQL] : Save jobs
-[Candidate Match] --> [PostgreSQL] : Save matches
-[Visualization] --> [PostgreSQL] : Read data
+    %% Потоки данных
+    hr_web_service --> hr_api_service
+    hr_api_service --> hr_etl_service
+    hr_api_service --> hr_job_service
+    hr_api_service --> hr_matching_service
+    hr_api_service --> hr_analytics_service
 
-[Ingestion] --> [Skills / Jobs Dictionary] : Read ontology
-[Candidate Match] --> [Skills / Jobs Dictionary] : Read ontology
-@enduml
-....
+    hr_etl_service --> hr_psql_service
+    hr_job_service --> hr_psql_service
+    hr_matching_service --> hr_psql_service
+    hr_analytics_service --> hr_psql_service
+
+    hr_etl_service --> hr_ontology_service
+    hr_matching_service --> hr_ontology_service
+
+    hr_nginx_service --> hr_web_service
+    hr_nginx_service --> hr_api_service
+----
