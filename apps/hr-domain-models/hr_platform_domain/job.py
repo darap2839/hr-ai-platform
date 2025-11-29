@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from hr_domain_models.value_objects.skill import Skill
+from hr_platform.value_objects.skill import Skill
 
 class Job(BaseModel):
     id: int
