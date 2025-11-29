@@ -1,4 +1,5 @@
-```mermaid
+[source,mermaid]
+----
 graph TD
     Web[hr-web-service] --> API[hr-api-service]
     API --> ETL[hr-etl-service]
@@ -13,3 +14,4 @@ graph TD
 
     ETL --> Ontology[hr-ontology-service]
     Matching --> Ontology
+----
