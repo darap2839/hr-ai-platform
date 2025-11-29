@@ -6,4 +6,6 @@ POSTGRES_DB = os.getenv("POSTGRES_DB", "analytics_db")
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "db")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 
+NLP_SERVICE_URL = "http://nlp:8000/structure"
+
 DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"

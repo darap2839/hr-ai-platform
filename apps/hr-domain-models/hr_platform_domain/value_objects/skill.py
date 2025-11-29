@@ -1,5 +1,3 @@
-from pydantic import BaseModel
-
-class Skill(BaseModel):
-    name: str
-    level: str  # например: "junior", "middle", "senior"
+class Skill:
+    def __init__(self, name: str):
+        self.name = name

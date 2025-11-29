@@ -1,5 +1,3 @@
-from pydantic import BaseModel
-
-class Experience(BaseModel):
-    years: int
-    description: str
+class Experience:
+    def __init__(self, years: int):
+        self.years = years

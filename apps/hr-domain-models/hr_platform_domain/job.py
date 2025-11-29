@@ -1,10 +1,8 @@
-from pydantic import BaseModel
-from typing import List, Optional
 from hr_platform_domain.value_objects.skill import Skill
 
-class Job(BaseModel):
-    id: int
-    title: str
-    required_skills: List[Skill]
-    preferred_skills: Optional[List[Skill]] = []
-    min_experience: Optional[int]
+
+class Job:
+    def __init__(self, id: int, title: str, required_skills: list[Skill]):
+        self.id = id
+        self.title = title
+        self.required_skills = required_skills
