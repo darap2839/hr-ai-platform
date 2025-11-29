@@ -1,0 +1,67 @@
+= HR AI Platform - Data Flow Diagram
+:toc:
+:toclevels: 2
+
+[plantuml,dataflow,png]
+....
+@startuml
+' --- Сервисы ---
+package "Web" as WEB {
+  [Frontend]
+  [HR UI]
+  [Dashboards]
+}
+
+package "API" as API {
+  [API Gateway]
+  [Routing]
+}
+
+package "ETL" as ETL {
+  [Ingestion]
+  [Parsing / OCR]
+  [Normalization]
+}
+
+package "Job Service" as JOB {
+  [Jobs CRUD]
+  [Skills/Requirements]
+  [Competencies]
+}
+
+package "Matching" as MATCH {
+  [Candidate Match]
+  [Score Calculation]
+  [Ranking]
+}
+
+package "Analytics" as ANALYTICS {
+  [Visualization]
+  [Reports / Metrics]
+}
+
+package "Ontology" as ONTO {
+  [Skills / Jobs Dictionary]
+}
+
+package "DB" as PSQL {
+  [PostgreSQL]
+  [Resumes, Jobs, Matches]
+}
+
+' --- Потоки данных ---
+[Frontend] --> [API Gateway] : REST
+[API Gateway] --> [Ingestion] : Upload resumes
+[API Gateway] --> [Jobs CRUD] : Jobs CRUD
+[API Gateway] --> [Candidate Match] : Match requests
+[API Gateway] --> [Visualization] : Analytics requests
+
+[Ingestion] --> [PostgreSQL] : Save resumes
+[Jobs CRUD] --> [PostgreSQL] : Save jobs
+[Candidate Match] --> [PostgreSQL] : Save matches
+[Visualization] --> [PostgreSQL] : Read data
+
+[Ingestion] --> [Skills / Jobs Dictionary] : Read ontology
+[Candidate Match] --> [Skills / Jobs Dictionary] : Read ontology
+@enduml
+....
