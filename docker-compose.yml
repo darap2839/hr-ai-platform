@@ -27,8 +27,6 @@ services:
     container_name: nlp
     image: hr-platform/hr-nlp-service
     build: apps/hr-nlp-service
-    ports:
-      - "8001:8001"
 
   nginx:
     container_name: nginx
