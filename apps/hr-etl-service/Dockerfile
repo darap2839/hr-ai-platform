@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM hr-platform/hr-base
 
 WORKDIR /app
 COPY requirements.txt .

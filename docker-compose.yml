@@ -1,29 +1,38 @@
 # hr-ai-platform/docker-compose.yml
 services:
+  build_base:
+    image: hr-platform/hr-base
+    build: apps/hr-domain-models
+
   analytics:
     container_name: analytics
     image: hr-platform/hr-analytics-service
     build: apps/hr-analytics-service
+    env_file: .env
 
   api:
     container_name: api
     image: hr-platform/hr-api-service
     build: apps/hr-api-service
+    env_file: .env
 
   etl:
     container_name: etl
     image: hr-platform/hr-etl-service
     build: apps/hr-etl-service
+    env_file: .env
 
   job:
     container_name: job
     image: hr-platform/hr-job-service
     build: apps/hr-job-service
+    env_file: .env
 
   matching:
     container_name: matching
     image: hr-platform/hr-matching-service
     build: apps/hr-matching-service
+    env_file: .env
 
   nginx:
     container_name: nginx
@@ -39,11 +48,13 @@ services:
     container_name: nlp
     image: hr-platform/hr-nlp-service
     build: apps/hr-nlp-service
+    env_file: .env
 
   ontology:
     container_name: ontology
     image: hr-platform/hr-ontology-service
     build: apps/hr-ontology-service
+    env_file: .env
 
   web:
     container_name: web
@@ -54,11 +65,8 @@ services:
     container_name: psql
     image: hr-platform/hr-psql-service
     build: apps/hr-psql-service
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
+    env_file: .env
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - ./data/psql:/var/lib/postgresql/data
