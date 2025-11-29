@@ -17,9 +17,6 @@ services:
     container_name: backend
     image: hr-platform/hr-backend-service
     build: apps/hr-backend-service
-    environment:
-      DATABASE_URL: postgresql://jobmatch_user:secure_password@hr-psql-service:5432/jobmatch_ai
-      NLP_SERVICE_URL: http://nlp:8001
     volumes:
       - ./data/uploads:/app/uploads
 
