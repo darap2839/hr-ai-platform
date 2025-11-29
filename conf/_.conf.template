@@ -1,0 +1,14 @@
+server {
+    ${LISTEN_BLOCK}
+    server_name ${DOMAIN_NAME};
+
+    location / {
+        proxy_pass http://web:4173;
+        include /etc/nginx/common-proxy.conf;
+    }
+
+      location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        try_files $uri =404;
+      }
+}

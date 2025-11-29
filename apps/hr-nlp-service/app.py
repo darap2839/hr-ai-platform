@@ -1,67 +1,46 @@
-# hr-nlp-service/app.py
-from fastapi import FastAPI, HTTPException
-import spacy
-import ollama
-import re
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List, Dict
 
-app = FastAPI()
-
-# Загружаем spaCy (для будущего использования)
-try:
-    nlp = spacy.load("ru_core_news_sm")
-except OSError:
-    print("Модель spaCy не найдена. Используем fallback.")
-
-# Словарь ключевых слов (оставляем твой)
-ELECTRONICS_KEYWORDS = {
-    "altium", "cadence", "плис", "fpga", "свч", "микросхема",
-    "гост рф", "печатная плата", "осциллограф", "спектроанализатор"
-}
+app = FastAPI(title="HR NLP Test Service")
 
 
+# Модели запросов
+class StructureRequest(BaseModel):
+    text: str
+
+
+class RecommendationRequest(BaseModel):
+    candidate: Dict
+    job: Dict
+
+
+class ExplainRequest(BaseModel):
+    candidate: Dict
+    job: Dict
+
+
+# Эндпоинт структуры
 @app.post("/structure")
-def structure_text(request: dict):
-    text = request["text"].lower()
-    skills = [kw for kw in ELECTRONICS_KEYWORDS if kw in text]
-
-    # Простое определение роли
-    role = "инженер"
-    if "программист" in text or "разработчик" in text:
-        role = "программист"
-    elif "инженер" in text:
-        role = "инженер"
-
-    return {"skills": skills, "role": role}
+def structure_text(request: StructureRequest):
+    # Пока просто ручка тестовая
+    if request.text:
+        return {"status": "ok", "message": "Структура текста обработана"}
+    return {"status": "не ок", "message": "Пустой текст"}
 
 
-# НОВЫЙ ЭНДПОИНТ: генерация рекомендаций
+# Эндпоинт рекомендаций
 @app.post("/generate_recommendation")
-def generate_recommendation(request: dict):
-    """
-    Генерирует рекомендацию для кандидата
-    request: { "candidate": {...}, "job": {...} }
-    """
-    try:
-        # Используем Llama 3 через Ollama
-        prompt = f"""
-        Ты — карьерный консультант в ИТ. 
-        Кандидат: {request['candidate']['experience']}, навыки: {', '.join(request['candidate']['skills'])}
-        Вакансия: {request['job']['title']}, требуется: {', '.join(request['job']['required_skills'])}
-
-        Объясни, почему кандидат пока не подходит, и дай персонализированный план развития.
-        Пиши на русском, дружелюбно, без маркированных списков.
-        """
-
-        response = ollama.generate(model='llama3', prompt=prompt)
-        return {"recommendation": response['response']}
-    except Exception as e:
-        # Fallback: простой ответ
-        return {"recommendation": "Изучите недостающие навыки и попробуйте снова."}
+def generate_recommendation(request: RecommendationRequest):
+    # Пока ручка возвращает фиксированное значение
+    if request.candidate and request.job:
+        return {"status": "ok", "recommendation": "Рекомендация сгенерирована (тест)"}
+    return {"status": "не ок", "recommendation": "Некорректные данные"}
 
 
-# НОВЫЙ ЭНДПОИНТ: объяснение для HR
+# Эндпоинт объяснения для HR
 @app.post("/explain_match")
-def explain_match(request: dict):
-    """Объясняет HR, почему кандидат рекомендован"""
-    # Аналогично с промптом для HR
-    pass
+def explain_match(request: ExplainRequest):
+    if request.candidate and request.job:
+        return {"status": "ok", "explanation": "Объяснение сгенерировано (тест)"}
+    return {"status": "не ок", "explanation": "Некорректные данные"}

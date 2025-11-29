@@ -17,8 +17,6 @@ services:
     container_name: backend
     image: hr-platform/hr-backend-service
     build: apps/hr-backend-service
-    ports:
-      - "8000:8000"
     environment:
       DATABASE_URL: postgresql://jobmatch_user:secure_password@hr-psql-service:5432/jobmatch_ai
       NLP_SERVICE_URL: http://nlp:8001
@@ -26,6 +24,7 @@ services:
       - ./data/uploads:/app/uploads
 
   nlp:
+    container_name: nlp
     image: hr-platform/hr-nlp-service
     build: apps/hr-nlp-service
     ports:
@@ -38,6 +37,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./conf:/etc/nginx/templates/
 
   web:
     container_name: web
