@@ -47,5 +47,5 @@ def explain_match(request: ExplainRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    print("Запуск FastAPI сервера на 0.0.0.0:8001...")
-    uvicorn.run("app:app", host="0.0.0.0", port=8001, log_level="info")
+    print("Запуск FastAPI сервера на 0.0.0.0:8000...")
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, log_level="info")
