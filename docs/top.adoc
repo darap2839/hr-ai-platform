@@ -1,4 +1,4 @@
-= HR Platform — Документация Use Case сценариев
+= HR Platform — Основна документация по платформе
 :toc:
 :toclevels: 3
 :sectnums:
@@ -7,6 +7,8 @@
 
 == Структура документации
 
+* xref:arch/architecture.adoc[Архитектура: Структура сервисов]
+* xref:arch/dataflow.adoc[Архитектура: Движение данных]
 * xref:usecase/usecase_process_vacancy.adoc[Use Case: Обработка вакансии]
 * xref:usecase/usecase_extract_text.adoc[Use Case: Извлечение текста из резюме]
 * xref:usecase/usecase_parse_metadata.adoc[Use Case: Парсинг метаданных резюме]

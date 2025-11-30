@@ -1,0 +1,225 @@
+= HR Platform — Потоки данных между сервисами
+:toc:
+:toclevels: 3
+:sectnums:
+
+Документ описывает данные, которые передаются между сервисами платформы HR AI, форматы структур и направления потоков.
+
+== 1. Общая диаграмма потоков данных
+
+Диаграмма отражает ключевые каналы передачи данных между сервисами.
+
+[source,mermaid]
+----
+flowchart TD
+
+subgraph WEB [hr_web_service]
+  A[Frontend UI]
+end
+
+subgraph API [hr_api_service]
+  B[API Gateway]
+end
+
+subgraph ETL [hr_etl_service]
+  C1[Приём файла резюме]
+  C2[OCR / NLP]
+  C3[Нормализация данных]
+end
+
+subgraph JOB [hr_job_service]
+  D[CRUD вакансий]
+end
+
+subgraph MATCH [hr_matching_service]
+  E1[Сравнение резюме/вакансий]
+  E2[Ранжирование]
+end
+
+subgraph ANALYTICS [hr_analytics_service]
+  F[Аналитика и отчёты]
+end
+
+subgraph ONT [hr_ontology_service]
+  G[Онтологии навыков]
+end
+
+subgraph DB [hr_psql_service]
+  X[(PostgreSQL)]
+end
+
+A --> B
+
+B --> C1
+C1 --> C2
+C2 --> C3
+C3 --> X
+
+B --> D
+D --> X
+
+B --> E1
+E1 --> E2
+E2 --> X
+
+B --> F
+F --> X
+
+C2 --> G
+E1 --> G
+----
+
+== 2. Потоки данных по сервисам
+
+=== 2.1 hr_web_service → hr_api_service
+
+Тип: REST Данные:
+
+[cols="1,1,2",options="header"]
+|===
+|Операция |Формат данных |Описание
+
+|Загрузка файла резюме
+|multipart/form-data
+|PDF, DOCX, PNG, JPG
+
+|Создание вакансии
+|JSON (JobCreateRequest)
+|Должность, требования, навыки
+
+|Запрос совпадений
+|JSON
+|ID вакансии/резюме
+
+|Отчёты
+|Query params
+|Фильтры аналитики
+|===
+
+=== 2.2 hr_api_service → hr_etl_service
+
+Тип: Internal REST
+
+📄 UploadResumeRequest
+
+[source,json]
+{
+  "file_path": "/tmp/upload/resume.pdf",
+  "source": "web",
+  "user_id": "123"
+}
+
+=== 2.3 hr_etl_service → hr_psql_service
+
+Тип: DB insert/update Сохраняются структуры:
+📄 RawResume
+
+[source,json]
+{
+  "id": "uuid",
+  "original_file_path": "...",
+  "raw_text": "...",
+  "parsed_text": "...",
+  "created_at": "..."
+}
+
+📄 CandidateProfile
+
+[source,json]
+{
+"id": "uuid", "name": "string", "skills": ["Python", "REST"], "experience": [...], "education": [...], "contacts": {...} }
+
+=== 2.4 hr_api_service → hr_job_service
+
+Тип: REST
+
+📄 JobRequest
+
+[source,json]
+{
+"title": "Backend Developer", "skills_required": ["Python", "FastAPI"], "experience_min": 2 }
+
+=== 2.5 hr_job_service → hr_psql_service
+
+Сохраняется в таблицы: jobs, job_skills, job_requirements
+
+=== 2.6 hr_api_service → hr_matching_service
+
+Тип: REST
+
+📄 MatchRequest
+
+[source,json]
+{
+"vacancy_id": "uuid", "candidate_ids": ["uuid1", "uuid2"]
+}
+
+=== 2.7 hr_matching_service → hr_psql_service
+
+Сохраняет результат ранжирования:
+
+📄 MatchResult
+
+[source,json]
+{
+"candidate_id": "uuid", "vacancy_id": "uuid", "score": 0.87, "missing_skills": ["Kafka", "Docker"], "matching_skills": ["Python", "SQL"]
+}
+
+=== 2.8 hr_etl_service + hr_matching_service → hr_ontology_service
+
+Тип: REST / Cached dataset
+
+Запрашивают словари навыков, иерархии компетенций, нормализованные должности.
+
+=== 2.9 hr_api_service → hr_analytics_service
+
+Тип: REST
+
+📄 AnalyticsQuery
+
+[source,json]
+{
+"type": "matching_stats", "vacancy_id": "uuid", "period": "30d" }
+
+=== 2.10 hr_analytics_service → hr_psql_service
+
+Запросы на агрегацию: статистика совпадений, отчёт по навыкам, конверсия кандидатов, ML метрики
+
+== 3. Роли сервисов в DataFlow
+
+[cols="1,1,1",options="header"]
+|===
+|Сервис |Получает |Отдаёт
+
+|web
+|—
+|Всё через API
+
+|api
+|От web
+|В каждый сервис
+
+|etl
+|Файлы
+|Структуры резюме
+
+|job
+|Вакансии
+|Сохранение вакансий
+
+|matching
+|Профили & вакансии
+|Match results
+
+|analytics
+|Данные из БД
+|Отчёты
+
+|ontology
+|Запросы
+|Словари
+
+|psql
+|Всё
+|—
+|===
