@@ -1,23 +1,29 @@
-= HR Platform — Основна документация по платформе
+= HR Platform — Основная документация по платформе
 :toc:
 :toclevels: 3
 :sectnums:
 
 Документация описывает ключевые пользовательские и системные сценарии работы сервисов платформы HR AI.
 
-== Структура документации
+== 1. Структура документации
 
-* xref:arch/architecture.adoc[Архитектура: Структура сервисов]
-* xref:arch/dataflow.adoc[Архитектура: Движение данных]
-* xref:usecase/usecase_process_vacancy.adoc[Use Case: Обработка вакансии]
-* xref:usecase/usecase_extract_text.adoc[Use Case: Извлечение текста из резюме]
-* xref:usecase/usecase_parse_metadata.adoc[Use Case: Парсинг метаданных резюме]
-* xref:usecase/usecase_skill_recommendations.adoc[Use Case: Генерация рекомендаций навыков]
-* xref:usecase/usecase_analytics.adoc[Use Case: Аналитика совпадений и отчётность]
+* xref:arch/architecture.adoc[Архитектура: структура сервисов]
+* xref:arch/dataflow.adoc[Архитектура: движение данных между сервисами]
+* xref:usecase/usecase_process_vacancy.adoc[Use Case: обработка вакансии]
+* xref:usecase/usecase_extract_text.adoc[Use Case: извлечение текста из резюме]
+* xref:usecase/usecase_parse_metadata.adoc[Use Case: парсинг метаданных резюме]
+* xref:usecase/usecase_skill_recommendations.adoc[Use Case: генерация рекомендаций по навыкам]
+* xref:usecase/usecase_analytics.adoc[Use Case: аналитика совпадений и отчётность]
 
-== Назначение
+== 2. Назначение документа
 
-Документ служит точкой входа для понимания поведения сервисов и логики взаимодействия в рамках платформы.
+Документ служит точкой входа для понимания поведения сервисов и логики их взаимодействия в платформе HR AI.
 
 Каждый Use Case описывает:
-- акторов, - триггеры, - основной сценарий, - альтернативные ветки, - ошибки и исключения, - данные, участвующие в процессе.
+
+* акторов
+* триггеры
+* основной сценарий
+* альтернативные ветки
+* ошибки и исключения
+* данные, участвующие в процессе
