@@ -1,0 +1,21 @@
+= HR Platform — Документация Use Case сценариев
+:toc:
+:toclevels: 3
+:sectnums:
+
+Документация описывает ключевые пользовательские и системные сценарии работы сервисов платформы HR AI.
+
+== Структура документации
+
+* xref:usecase/usecase_process_vacancy.adoc[Use Case: Обработка вакансии]
+* xref:usecase/usecase_extract_text.adoc[Use Case: Извлечение текста из резюме]
+* xref:usecase/usecase_parse_metadata.adoc[Use Case: Парсинг метаданных резюме]
+* xref:usecase/usecase_skill_recommendations.adoc[Use Case: Генерация рекомендаций навыков]
+* xref:usecase/usecase_analytics.adoc[Use Case: Аналитика совпадений и отчётность]
+
+== Назначение
+
+Документ служит точкой входа для понимания поведения сервисов и логики взаимодействия в рамках платформы.
+
+Каждый Use Case описывает:
+- акторов, - триггеры, - основной сценарий, - альтернативные ветки, - ошибки и исключения, - данные, участвующие в процессе.
