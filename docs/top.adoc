@@ -9,6 +9,7 @@
 
 * xref:arch/architecture.adoc[Архитектура: структура сервисов]
 * xref:arch/dataflow.adoc[Архитектура: движение данных между сервисами]
+* xref:arch/hr_api_service.adoc[Архитектура: Структура API сервиса ]
 * xref:usecase/usecase_process_vacancy.adoc[Use Case: обработка вакансии]
 * xref:usecase/usecase_extract_text.adoc[Use Case: извлечение текста из резюме]
 * xref:usecase/usecase_parse_metadata.adoc[Use Case: парсинг метаданных резюме]
