@@ -1,18 +1,11 @@
 # controllers/vacancy_controller.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends
+
 from ..security.auth import get_current_user
 from ..security.schemas import UserResponse
+from ..domain.vacancy import VacancyUpdate
 
 vacancies_router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
-
-class VacancyUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    department: str | None = None
-    deadline: str | None = None  # формат: "YYYY-MM-DD"
-    status: str | None = None    # например: "active", "archived", "closed"
-
 
 @vacancies_router.get("")
 async def get_vacancy_list(

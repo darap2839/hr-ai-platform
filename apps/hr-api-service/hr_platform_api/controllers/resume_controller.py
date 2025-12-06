@@ -1,23 +1,13 @@
 # controllers/resume_controller.py
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
 from typing import Annotated
 
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, UploadFile, File, Form
 
+from ..domain.resume import ResumeUpdate
 from ..security.auth import get_current_user
 from ..security.schemas import UserResponse
 
 resumes_router = APIRouter(prefix="/resumes", tags=["Resumes"])
-
-
-class ResumeUpdate(BaseModel):
-    full_name: str | None = None
-    email: str | None = None
-    phone: str | None = None
-    skills: list[str] | None = None
-    experience: str | None = None
-    education: str | None = None
-    position: str | None = None
 
 
 @resumes_router.post("")
