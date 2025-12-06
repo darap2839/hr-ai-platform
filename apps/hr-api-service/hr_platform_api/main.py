@@ -1,3 +1,19 @@
+# main.py
 from fastapi import FastAPI
 
-app = FastAPI(title="HR Analytics Service")
+from .controllers.auth_controller import auth_router
+from .controllers.vacancy_controller import vacancies_router
+from .controllers.resume_controller import resumes_router
+from .controllers.assignment_controller import assignments_router
+
+app = FastAPI(title="HR Api Service",
+              description="API для управления вакансиями и заявками",
+              version="1.0.0",
+              docs_url="/docs",
+              redoc_url="/redoc",
+              openapi_url="/openapi.json"
+              )
+app.include_router(auth_router)
+app.include_router(vacancies_router)
+app.include_router(resumes_router)
+app.include_router(assignments_router)
