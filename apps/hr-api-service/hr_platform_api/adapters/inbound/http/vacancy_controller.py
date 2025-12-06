@@ -1,9 +1,9 @@
-# controllers/vacancy_controller.py
+# http/vacancy_controller.py
 from fastapi import APIRouter, Depends
 
-from ..security.auth import get_current_user
-from ..security.schemas import UserResponse
-from ..domain.vacancy import VacancyUpdate
+from ....security.auth import get_current_user
+from ....security.schemas import UserResponse
+from ....domain.models.vacancy import VacancyUpdate
 
 vacancies_router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
 

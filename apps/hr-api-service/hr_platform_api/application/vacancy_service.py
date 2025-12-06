@@ -1,7 +1,6 @@
 # application/vacancy_service.py
-# application/vacancy_service.py
 from typing import List, Optional, Dict, Any
-from ..repositories.vacancy_repository import (
+from ..db.repositories.vacancy_repository import (
     create_vacancy as repo_create,
     get_vacancy as repo_get,
     get_all_vacancies as repo_get_all,
@@ -9,14 +8,15 @@ from ..repositories.vacancy_repository import (
     archive_vacancy as repo_archive
 )
 
+
 async def create_vacancy(
-    title: str,
-    department: str,
-    description: Optional[str] = None,
-    requirements: Optional[str] = None,
-    skills: Optional[List[str]] = None,
-    deadline: Optional[str] = None,
-    created_by: str = "mock-hr-id"
+        title: str,
+        department: str,
+        description: Optional[str] = None,
+        requirements: Optional[str] = None,
+        skills: Optional[List[str]] = None,
+        deadline: Optional[str] = None,
+        created_by: str = "mock-hr-id"
 ) -> Dict[str, Any]:
     """
     Создать новую вакансию.
@@ -40,9 +40,9 @@ async def get_vacancy(vacancy_id: str) -> Optional[Dict[str, Any]]:
 
 
 async def get_all_vacancies(
-    created_by: Optional[str] = None,
-    department: Optional[str] = None,
-    include_archived: bool = False
+        created_by: Optional[str] = None,
+        department: Optional[str] = None,
+        include_archived: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Получить список всех вакансий с фильтрацией.
@@ -55,14 +55,14 @@ async def get_all_vacancies(
 
 
 async def update_vacancy(
-    vacancy_id: str,
-    title: Optional[str] = None,
-    department: Optional[str] = None,
-    description: Optional[str] = None,
-    requirements: Optional[str] = None,
-    skills: Optional[List[str]] = None,
-    deadline: Optional[str] = None,
-    status: Optional[str] = None
+        vacancy_id: str,
+        title: Optional[str] = None,
+        department: Optional[str] = None,
+        description: Optional[str] = None,
+        requirements: Optional[str] = None,
+        skills: Optional[List[str]] = None,
+        deadline: Optional[str] = None,
+        status: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
     """
     Частично обновить вакансию.

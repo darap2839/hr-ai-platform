@@ -1,8 +1,8 @@
-# controllers/assignment_controller.py
+# http/assignment_controller.py
 from fastapi import APIRouter, Depends, Query
-from ..security.auth import get_current_user
-from ..security.schemas import UserResponse
-from ..application import assignment_service, matching_service
+from ....security.auth import get_current_user
+from ....security.schemas import UserResponse
+from ....application import assignment_service, matching_service
 
 assignments_router = APIRouter(prefix="/assignments", tags=["Assignments"])
 

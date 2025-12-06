@@ -1,6 +1,6 @@
 # application/resume_service.py
 from typing import List, Optional, Dict, Any
-from ..repositories.resume_repository import (
+from ..db.repositories.resume_repository import (
     create_resume as repo_create,
     get_resume as repo_get,
     get_all_resumes as repo_get_all,

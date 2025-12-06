@@ -1,4 +1,4 @@
-# repositories/resume_repository.py
+# db/resume_repository.py
 from typing import List, Optional, Dict, Any
 
 # ЗАГЛУШКА: временная "база данных" в памяти

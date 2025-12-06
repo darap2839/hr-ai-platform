@@ -1,7 +1,7 @@
-# controllers/auth_controller.py
+# http/auth_controller.py
 from fastapi import APIRouter, Depends
-from ..security.auth import login_for_access_token, get_current_user
-from ..security.schemas import Token, UserResponse
+from ....security.auth import login_for_access_token, get_current_user
+from ....security.schemas import Token, UserResponse
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 

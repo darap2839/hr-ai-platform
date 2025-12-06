@@ -1,11 +1,11 @@
-# controllers/resume_controller.py
+# http/resume_controller.py
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 
-from ..domain.resume import ResumeUpdate
-from ..security.auth import get_current_user
-from ..security.schemas import UserResponse
+from ....domain.models.resume import ResumeUpdate
+from ....security.auth import get_current_user
+from ....security.schemas import UserResponse
 
 resumes_router = APIRouter(prefix="/resumes", tags=["Resumes"])
 

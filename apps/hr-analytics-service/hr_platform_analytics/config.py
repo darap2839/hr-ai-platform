@@ -3,7 +3,7 @@ import os
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "analytics_db")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "db")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "inbound")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 
 NLP_SERVICE_URL = "http://nlp:8000/structure"
