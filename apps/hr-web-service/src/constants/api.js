@@ -1,9 +1,12 @@
-// jobmatchai/hr-web-service/src/constants/api.js
-export const API_BASE_URL = '/api' // проксируется на localhost:8000
+// Попробуем использовать относительный путь, если работает Vite Proxy
+// Если не сработает, обратно на 'http://localhost:8000'
+//export const API_BASE_URL = '';
+export const API_URL = 'http://127.0.0.1:8000';
+//export const API_ENDPOINTS = {
 
-export const API_ENDPOINTS = {
-  UPLOAD_VACANCY: '/api/v1/upload_vacancy',
-  CANDIDATES: '/api/v1/candidates',
-  MATCHES: '/api/v1/matches',
-  AI_CHAT: '/api/v1/ai/chat'
-}
+//   UPLOAD_VACANCY: '/vacancies/upload',
+//   CANDIDATE: '/resumes',
+//   CANDIDATES: '/vacancies', // для получения списка
+//   MATCHES: '/matches',
+//   AI_CHAT: '/ai/chat'
+// };

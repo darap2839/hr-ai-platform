@@ -60,6 +60,9 @@ services:
     container_name: web
     image: hr-platform/hr-web-service
     build: apps/hr-web-service
+    ports:
+      - "3000:3000"
+      - "4173:4173"
 
   psql:
     container_name: psql

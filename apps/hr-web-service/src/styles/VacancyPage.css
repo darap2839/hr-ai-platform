@@ -1,0 +1,65 @@
+.vacancy-container { display: flex; flex-direction: column; gap: 24px; }
+
+.vacancy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vacancy-header h1 {
+  font-size: 28px;
+  background: linear-gradient(90deg, #fff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 5px;
+}
+
+.add-vacancy-btn {
+  background: #0066ff;
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0, 102, 255, 0.2);
+}
+
+.vacancy-controls-glass {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #555;
+}
+
+.search-box input {
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  width: 100%;
+}
+
+.empty-state-glass {
+  padding: 80px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.empty-state-glass h2 { color: #fff; margin-bottom: 10px; }
+.empty-state-glass p { color: #555; max-width: 400px; margin: 0 auto; }
