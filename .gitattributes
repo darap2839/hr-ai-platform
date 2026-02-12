@@ -9,3 +9,8 @@
 
 # Binary files should be left untouched
 *.jar           binary
+
+venv/
+.idea/
+__pycache__/
+*.pyc

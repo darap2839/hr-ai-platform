@@ -5,3 +5,11 @@
 
 # Ignore Gradle build output directory
 build
+
+venv/
+.idea/
+__pycache__/
+*.pyc
+
+node_modules/
+dist/
