@@ -9,5 +9,4 @@ class HrApiGatewaysApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
