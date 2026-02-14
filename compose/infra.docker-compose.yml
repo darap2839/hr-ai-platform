@@ -10,6 +10,8 @@ services:
       - "443:443"
     volumes:
       - ../conf:/etc/nginx/templates/
+    mem_limit: 256mb
+    cpus: 0.5
 
   psql:
     container_name: psql
@@ -20,3 +22,5 @@ services:
       - "5432:5432"
     volumes:
       - ../data/psql:/var/lib/postgresql/data
+    mem_limit: 2g
+    cpus: 2
