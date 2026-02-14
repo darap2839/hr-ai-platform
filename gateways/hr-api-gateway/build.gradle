@@ -57,6 +57,6 @@ tasks.register('bootDevRun', BootRun) {
     group = "application"
     description = "Run application with dev sourceSet"
     classpath = sourceSets.dev.runtimeClasspath
-    mainClass = 'ru.darap2839.hr.api.HrApiGatewaysApplication'
+    mainClass = 'ru.darap2839.hr.api.HrApiGatewayApplication'
     systemProperty "spring.profiles.active", "dev"
 }

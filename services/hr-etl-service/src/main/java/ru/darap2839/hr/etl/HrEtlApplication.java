@@ -1,13 +1,13 @@
-package ru.darap2839.hr.api;
+package ru.darap2839.hr.etl;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HrApiGatewaysApplication {
+public class HrEtlApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(HrApiGatewaysApplication.class, args);
+        SpringApplication.run(HrEtlApplication.class, args);
     }
 
 }
