@@ -1,10 +1,8 @@
-FROM hr-platform/hr-base
+FROM eclipse-temurin:latest
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY build/libs/*.jar app.jar
 
-COPY . .
-
-CMD ["uvicorn", "hr_platform_matching.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8080 8443
+ENTRYPOINT ["java", "-Xms1g", "-Xmx1g", "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=50", "-XX:+AlwaysPreTouch", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]

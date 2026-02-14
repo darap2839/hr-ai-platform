@@ -1,0 +1,22 @@
+# hr-ai-platform/docker-compose.yml
+services:
+  nginx:
+    container_name: nginx
+    image: hr-platform/hr-nginx-service
+    build: ../infra/hr-nginx-infra
+    env_file: ../.env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../conf:/etc/nginx/templates/
+
+  psql:
+    container_name: psql
+    image: hr-platform/hr-psql-service
+    build: ../infra/hr-psql-infra
+    env_file: ../.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../data/psql:/var/lib/postgresql/data

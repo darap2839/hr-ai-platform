@@ -1,0 +1,57 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.bmuschko.docker-spring-boot-application' version '6.7.0'
+}
+
+group = 'ru.darap2839.hr'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java']
+        resources.srcDirs = ['src/main/resources']
+    }
+    dev {
+        java.srcDirs = ['src/dev/java']
+        resources.srcDirs = ['src/dev/resources']
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    devImplementation.extendsFrom implementation
+    devRuntimeOnly.extendsFrom runtimeOnly
+}
+
+tasks.register('bootDevRun', BootRun) {
+    group = "application"
+    description = "Run application with dev sourceSet"
+    classpath = sourceSets.dev.runtimeClasspath
+    mainClass = 'ru.darap2839.hr.api.HrApiGatewaysApplication'
+    systemProperty "spring.profiles.active", "dev"
+}

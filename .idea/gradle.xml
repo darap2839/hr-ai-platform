@@ -5,21 +5,22 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="17" />
+        <option name="gradleJvm" value="openjdk-25" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/gateways" />
+            <option value="$PROJECT_DIR$/gateways/hr-api-gateway" />
+            <option value="$PROJECT_DIR$/infra" />
+            <option value="$PROJECT_DIR$/infra/hr-nginx-infra" />
+            <option value="$PROJECT_DIR$/infra/hr-psql-infra" />
             <option value="$PROJECT_DIR$/services" />
             <option value="$PROJECT_DIR$/services/hr-analytics-service" />
-            <option value="$PROJECT_DIR$/services/hr-api-service" />
-            <option value="$PROJECT_DIR$/services/hr-domain-models" />
             <option value="$PROJECT_DIR$/services/hr-etl-service" />
             <option value="$PROJECT_DIR$/services/hr-job-service" />
             <option value="$PROJECT_DIR$/services/hr-matching-service" />
-            <option value="$PROJECT_DIR$/services/hr-nginx-service" />
             <option value="$PROJECT_DIR$/services/hr-nlp-service" />
             <option value="$PROJECT_DIR$/services/hr-ontology-service" />
-            <option value="$PROJECT_DIR$/services/hr-psql-service" />
             <option value="$PROJECT_DIR$/services/hr-web-service" />
           </set>
         </option>

@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="1.6" />
+    <bytecodeTargetLevel target="25">
+      <module name="hr-api-gateway" target="25" />
+      <module name="hr-api-gateways.main" target="25" />
+      <module name="hr-api-gateways.test" target="25" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="hr-ai-platform.dev" options="-parameters" />
+      <module name="hr-ai-platform.gateways.hr-api-gateway" options="-parameters" />
+      <module name="hr-ai-platform.gateways.hr-api-gateway.dev" options="-parameters" />
+      <module name="hr-ai-platform.gateways.hr-api-gateway.main" options="-parameters" />
+      <module name="hr-ai-platform.gateways.hr-api-gateway.test" options="-parameters" />
+      <module name="hr-ai-platform.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-analytics-service" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-analytics-service.dev" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-analytics-service.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-analytics-service.test" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-etl-service" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-etl-service.dev" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-etl-service.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-etl-service.test" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-job-service" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-job-service.dev" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-job-service.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-job-service.test" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-matching-service" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-matching-service.dev" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-matching-service.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-matching-service.test" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-nlp-service" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-nlp-service.dev" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-nlp-service.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-nlp-service.test" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-ontology-service" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-ontology-service.dev" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-ontology-service.main" options="-parameters" />
+      <module name="hr-ai-platform.services.hr-ontology-service.test" options="-parameters" />
+      <module name="hr-ai-platform.test" options="-parameters" />
+      <module name="hr-api-gateway" options="-parameters" />
+      <module name="hr-api-gateways.main" options="-parameters" />
+      <module name="hr-api-gateways.test" options="-parameters" />
+    </option>
   </component>
 </project>

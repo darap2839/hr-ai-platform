@@ -1,0 +1,7 @@
+# hr-ai-platform/docker-compose.yml
+services:
+  api:
+    container_name: api
+    image: hr-platform/hr-api-gateway
+    build: ../gateways/hr-api-gateway
+    env_file: ../.env

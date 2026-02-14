@@ -1,0 +1,42 @@
+services:
+  analytics:
+    container_name: analytics
+    image: hr-platform/hr-analytics-service
+    build: ../services/hr-analytics-service
+    env_file: ../.env
+
+  etl:
+    container_name: etl
+    image: hr-platform/hr-etl-service
+    build: ../services/hr-etl-service
+    env_file: ../.env
+
+  job:
+    container_name: job
+    image: hr-platform/hr-job-service
+    build: ../services/hr-job-service
+    env_file: ../.env
+
+  matching:
+    container_name: matching
+    image: hr-platform/hr-matching-service
+    build: ../services/hr-matching-service
+    env_file: ../.env
+
+  nlp:
+    container_name: nlp
+    image: hr-platform/hr-nlp-service
+    build: ../services/hr-nlp-service
+    env_file: ../.env
+
+  ontology:
+    container_name: ontology
+    image: hr-platform/hr-ontology-service
+    build: ../services/hr-ontology-service
+    env_file: ../.env
+
+  web:
+    container_name: web
+    image: hr-platform/hr-web-service
+    build: ../services/hr-web-service
+    env_file: ../.env
