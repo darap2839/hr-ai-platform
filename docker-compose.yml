@@ -2,42 +2,42 @@
 services:
   build_base:
     image: hr-platform/hr-base
-    build: apps/hr-domain-models
+    build: services/hr-domain-models
 
   analytics:
     container_name: analytics
     image: hr-platform/hr-analytics-service
-    build: apps/hr-analytics-service
+    build: services/hr-analytics-service
     env_file: .env
 
   api:
     container_name: api
     image: hr-platform/hr-api-service
-    build: apps/hr-api-service
+    build: services/hr-api-service
     env_file: .env
 
   etl:
     container_name: etl
     image: hr-platform/hr-etl-service
-    build: apps/hr-etl-service
+    build: services/hr-etl-service
     env_file: .env
 
   job:
     container_name: job
     image: hr-platform/hr-job-service
-    build: apps/hr-job-service
+    build: services/hr-job-service
     env_file: .env
 
   matching:
     container_name: matching
     image: hr-platform/hr-matching-service
-    build: apps/hr-matching-service
+    build: services/hr-matching-service
     env_file: .env
 
   nginx:
     container_name: nginx
     image: hr-platform/hr-nginx-service
-    build: apps/hr-nginx-service
+    build: services/hr-nginx-service
     ports:
       - "80:80"
       - "443:443"
@@ -47,24 +47,24 @@ services:
   nlp:
     container_name: nlp
     image: hr-platform/hr-nlp-service
-    build: apps/hr-nlp-service
+    build: services/hr-nlp-service
     env_file: .env
 
   ontology:
     container_name: ontology
     image: hr-platform/hr-ontology-service
-    build: apps/hr-ontology-service
+    build: services/hr-ontology-service
     env_file: .env
 
   web:
     container_name: web
     image: hr-platform/hr-web-service
-    build: apps/hr-web-service
+    build: services/hr-web-service
 
   psql:
     container_name: psql
     image: hr-platform/hr-psql-service
-    build: apps/hr-psql-service
+    build: services/hr-psql-service
     env_file: .env
     ports:
       - "5432:5432"

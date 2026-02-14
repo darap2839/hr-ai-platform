@@ -9,18 +9,18 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/apps" />
-            <option value="$PROJECT_DIR$/apps/hr-analytics-service" />
-            <option value="$PROJECT_DIR$/apps/hr-api-service" />
-            <option value="$PROJECT_DIR$/apps/hr-domain-models" />
-            <option value="$PROJECT_DIR$/apps/hr-etl-service" />
-            <option value="$PROJECT_DIR$/apps/hr-job-service" />
-            <option value="$PROJECT_DIR$/apps/hr-matching-service" />
-            <option value="$PROJECT_DIR$/apps/hr-nginx-service" />
-            <option value="$PROJECT_DIR$/apps/hr-nlp-service" />
-            <option value="$PROJECT_DIR$/apps/hr-ontology-service" />
-            <option value="$PROJECT_DIR$/apps/hr-psql-service" />
-            <option value="$PROJECT_DIR$/apps/hr-web-service" />
+            <option value="$PROJECT_DIR$/services" />
+            <option value="$PROJECT_DIR$/services/hr-analytics-service" />
+            <option value="$PROJECT_DIR$/services/hr-api-service" />
+            <option value="$PROJECT_DIR$/services/hr-domain-models" />
+            <option value="$PROJECT_DIR$/services/hr-etl-service" />
+            <option value="$PROJECT_DIR$/services/hr-job-service" />
+            <option value="$PROJECT_DIR$/services/hr-matching-service" />
+            <option value="$PROJECT_DIR$/services/hr-nginx-service" />
+            <option value="$PROJECT_DIR$/services/hr-nlp-service" />
+            <option value="$PROJECT_DIR$/services/hr-ontology-service" />
+            <option value="$PROJECT_DIR$/services/hr-psql-service" />
+            <option value="$PROJECT_DIR$/services/hr-web-service" />
           </set>
         </option>
       </GradleProjectSettings>
