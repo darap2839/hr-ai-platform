@@ -1,4 +1,4 @@
-package ru.darap2839.hr.api;
+package ru.darap2839.hr.ontology;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

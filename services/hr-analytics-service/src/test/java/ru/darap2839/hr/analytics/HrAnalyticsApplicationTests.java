@@ -1,10 +1,10 @@
-package ru.darap2839.hr.api;
+package ru.darap2839.hr.analytics;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class HrApiGatewaysApplicationTests {
+class HrAnalyticsApplicationTests {
 
     @Test
     void contextLoads() {
