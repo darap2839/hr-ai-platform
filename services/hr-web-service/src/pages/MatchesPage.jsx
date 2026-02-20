@@ -1,94 +1,84 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import Header from '../components/Layout/Header'
-import Container from '../components/Layout/Container'
-import CandidateCard from '../components/Cards/CandidateCard'
-import Button from '../components/UI/Button'
-import LoadingSpinner from '../components/UI/LoadingSpinner'
-import Alert from '../components/UI/Alert'
-import { matchesService } from '../services/api'
+import React from 'react';
+import {
+  CheckCircleOutlined,
+  ThunderboltOutlined,
+  SafetyCertificateOutlined,
+  ArrowRightOutlined
+} from '@ant-design/icons';
+import '../styles/MatchesPage.css';
 
-export default function MatchesPage() {
-  const navigate = useNavigate()
-  const [matches, setMatches] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    const fetchMatches = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const data = await matchesService.getMatches()
-        setMatches(data)
-      } catch (err) {
-        setError(err.message || 'Ошибка при загрузке кандидатов')
-      } finally {
-        setLoading(false)
-      }
+const MatchesPage = () => {
+  const matches = [
+    {
+      id: 1,
+      name: "Алексей Соколов",
+      position: "Инженер-конструктор (СВЧ)",
+      score: 94,
+      potential: "Ведущий разработчик антенных систем",
+      tags: ["Altium Designer", "ГОСТ", "СВЧ-цепи"]
+    },
+    {
+      id: 2,
+      name: "Мария Иванова",
+      position: "Программист ПЛИС",
+      score: 88,
+      potential: "Архитектор встраиваемых систем",
+      tags: ["Verilog", "Xilinx", "Python"]
+    },
+    {
+      id: 3,
+      name: "Игорь Петров",
+      position: "Инженер-схемотехник",
+      score: 72,
+      potential: "Технический аудитор документации",
+      tags: ["P-CAD", "ЭКБ", "Аналоговые цепи"]
     }
-
-    fetchMatches()
-  }, [])
+  ];
 
   return (
-    <div className="min-h-screen bg-surface">
-      <Header userName="Алексей" />
-      <Container>
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            className="mb-4"
-          >
-            ← Назад к вакансиям
-          </Button>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Результаты подбора</h2>
-          <p className="text-gray-600">Найденные кандидаты, отсортированные по соответствию</p>
-        </div>
+    <div className="matches-layout animate-fade">
+      <div className="matches-header">
+        <h1>Результаты ИИ-сопоставления</h1>
+        <p>Анализ соответствия кандидатов активным вакансиям предприятия</p>
+      </div>
 
-        {loading && (
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner size="lg" />
-            <span className="ml-3 text-gray-600">Загрузка кандидатов...</span>
-          </div>
-        )}
+      <div className="matches-list">
+        {matches.map(candidate => (
+          <div key={candidate.id} className="match-glass-row">
+            <div className="score-circle-area">
+              <div className="progress-ring" style={{'--p': candidate.score}}>
+                <span>{candidate.score}%</span>
+              </div>
+            </div>
 
-        {error && (
-          <Alert variant="error" className="mb-4">
-            {error}
-          </Alert>
-        )}
-
-        {matches && !loading && (
-          <div className="space-y-4">
-            {matches.candidates && matches.candidates.length > 0 ? (
-              <>
-                {matches.candidates.map((candidate, i) => (
-                  <CandidateCard
-                    key={i}
-                    name={candidate.name}
-                    matchScore={candidate.match_score}
-                    explanation={candidate.gap || 'Нет дополнительной информации'}
-                  />
+            <div className="candidate-info">
+              <h3>{candidate.name}</h3>
+              <span className="target-pos">Вакансия: {candidate.position}</span>
+              <div className="skill-tags">
+                {candidate.tags.map(tag => (
+                  <span key={tag} className="tag-glass">{tag}</span>
                 ))}
-                {matches.recommendation && (
-                  <Alert variant="info" className="mt-6">
-                    <div className="font-semibold mb-1">💡 Рекомендация</div>
-                    <p>{matches.recommendation}</p>
-                  </Alert>
-                )}
-              </>
-            ) : (
-              <Alert variant="warning">
-                Кандидаты не найдены. Попробуйте изменить параметры поиска.
-              </Alert>
-            )}
+              </div>
+            </div>
+
+            <div className="ai-insight-block">
+              <div className="insight-label">
+                <ThunderboltOutlined /> ИИ-Потенциал
+              </div>
+              <p>{candidate.potential}</p>
+              <span className="status-verify"><SafetyCertificateOutlined /> Подтверждено ИИ</span>
+            </div>
+
+            <div className="action-area">
+              <button className="btn-view-profile">
+                ОТКРЫТЬ ОТЧЕТ <ArrowRightOutlined />
+              </button>
+            </div>
           </div>
-        )}
-      </Container>
+        ))}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-
+export default MatchesPage;

@@ -1,4 +1,4 @@
-FROM node:latest AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -16,6 +16,6 @@ RUN npm run build
 
 FROM builder
 
-EXPOSE 3000
+EXPOSE 3000 4173
 
 CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0"]

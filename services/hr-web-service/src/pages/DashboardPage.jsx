@@ -1,50 +1,52 @@
-import { useNavigate } from 'react-router-dom'
-import Header from '../components/Layout/Header'
-import Container from '../components/Layout/Container'
-import VacancyCard from '../components/Cards/VacancyCard'
-import Button from '../components/UI/Button'
-import { useVacancy } from '../hooks/useVacancy'
+import React from 'react';
+import {
+  UserOutlined,
+  FileDoneOutlined,
+  ThunderboltOutlined,
+  RiseOutlined
+} from '@ant-design/icons';
 
-export default function DashboardPage() {
-  const navigate = useNavigate()
-  const { vacancy } = useVacancy()
+
+import DashboardHeader from '../components/Layout/DashboardHeader';
+import '../styles/DashboardPage.css';
+
+const DashboardPage = () => {
+  const stats = [
+    { id: 1, title: 'Всего кандидатов', value: '1,284', icon: <UserOutlined />, color: '#0066ff' },
+    { id: 2, title: 'Проанализировано ИИ', value: '856', icon: <ThunderboltOutlined />, color: '#52c41a' },
+    { id: 3, title: 'Открытых вакансий', value: '42', icon: <FileDoneOutlined />, color: '#faad14' },
+    { id: 4, title: 'Эффективность подбора', value: '+14%', icon: <RiseOutlined />, color: '#13c2c2' },
+  ];
 
   return (
-    <div className="min-h-screen bg-surface">
-      <Header userName="Алексей" />
-      <Container>
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ваши вакансии</h2>
-          <p className="text-gray-600">Управляйте вакансиями и находите подходящих кандидатов</p>
-        </div>
+    <div className="dashboard-container animate-fade">
 
-        {vacancy ? (
-          <VacancyCard
-            title={vacancy.role || "Инженер радиоэлектроники"}
-            skills={vacancy.skills || []}
-          />
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-soft">
-            <div className="max-w-md mx-auto">
-              <div className="text-6xl mb-4">📋</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                У вас пока нет вакансий
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Загрузите вакансию, чтобы начать подбор кандидатов
-              </p>
-              <Button
-                onClick={() => navigate('/upload')}
-                size="lg"
-              >
-                Загрузить вакансию
-              </Button>
+
+      <DashboardHeader
+        title="Система"
+        subtitle="Добро пожаловать в центр управления ИИ-рекрутингом RADAR"
+      />
+
+      <div className="stats-grid">
+        {stats.map(item => (
+          <div key={item.id} className="stat-card-glass">
+            <div className="stat-icon" style={{ color: item.color }}>
+              {item.icon}
+            </div>
+            <div className="stat-info">
+              <span className="stat-label">{item.title}</span>
+              <span className="stat-value">{item.value}</span>
             </div>
           </div>
-        )}
-      </Container>
+        ))}
+      </div>
+
+      {/* Recent Activity и т.д. */}
+      <div className="dashboard-content-main">
+          {/* код активности и статусов */}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-
+export default DashboardPage;

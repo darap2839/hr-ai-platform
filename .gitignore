@@ -6,3 +6,8 @@
 # Ignore Gradle build output directory
 build
 /.idea/
+
+.gradle/
+build/
+dist/
+/services/hr-web-service/node_modules/
