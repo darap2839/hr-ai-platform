@@ -230,7 +230,7 @@ function UploadModal({ onClose, onSubmit }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: 'calc(100vw - 48px)', maxWidth: '760px', overflowX: 'hidden' }}>
         <div className="modal-header">
           <h2><FileText size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} />Загрузить документ</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
@@ -304,10 +304,11 @@ function UploadModal({ onClose, onSubmit }) {
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
                     {(formData.file.size / 1024).toFixed(1)} KB
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%', marginTop: '24px' }}>
                     <button
                       type="button"
                       className="secondary-button"
+                      style={{ minWidth: '130px' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -319,6 +320,7 @@ function UploadModal({ onClose, onSubmit }) {
                     <button
                       type="button"
                       className="primary-button"
+                      style={{ minWidth: '170px' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -354,9 +356,9 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Step 2: Document Details */}
         {step === 2 && (
-          <div style={{ padding: '24px' }}>
-            <h3 style={{ margin: '0 0 16px' }}>Данные документа</h3>
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '16px' }}>
+          <div style={{ width: '100%', padding: '24px', boxSizing: 'border-box' }}>
+            <h3 style={{ margin: '0 0 20px' }}>Данные документа</h3>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', width: '100%', minWidth: 0, gap: '20px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Название *</label>
                 <input
@@ -411,7 +413,7 @@ function UploadModal({ onClose, onSubmit }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', width: '100%', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Отдел</label>
                   <input
@@ -440,8 +442,8 @@ function UploadModal({ onClose, onSubmit }) {
               {/* File Preview */}
               {formData.file && (
                 <div style={{ 
-                  padding: '12px', background: '#f1f5f9', borderRadius: '8px',
-                  display: 'flex', alignItems: 'center', gap: '12px'
+                  width: '100%', padding: '12px', background: '#f1f5f9', borderRadius: '8px',
+                  display: 'flex', alignItems: 'center', gap: '12px', boxSizing: 'border-box'
                 }}>
                   <FileText size={20} color="#0b73ff" />
                   <div style={{ flex: 1 }}>
@@ -453,7 +455,7 @@ function UploadModal({ onClose, onSubmit }) {
                 </div>
               )}
 
-              <div style={{ paddingTop: '16px', display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: '24px', paddingTop: '16px', boxSizing: 'border-box' }}>
                 <button 
                   type="button" 
                   onClick={() => setStep(1)} 
