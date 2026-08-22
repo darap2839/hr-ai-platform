@@ -1,7 +1,7 @@
 // frontend/src/pages/KnowledgeBase.jsx
 import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Pencil, Archive, Trash2 } from 'lucide-react';
 
 const documentMenuItemStyle = {
   display: 'flex',
@@ -90,6 +90,16 @@ function KnowledgeBase() {
       URL.revokeObjectURL(url);
     } catch (error) {
       alert('Не удалось скачать файл: ' + error.message);
+    }
+  };
+
+  const handleArchiveDocument = async (doc) => {
+    try {
+      setActiveMenuId(null);
+      await documentsApi.updateDocument(doc.id, { status: 'archived' });
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось переместить документ в архив: ' + error.message);
     }
   };
 
@@ -248,6 +258,15 @@ function KnowledgeBase() {
                       >
                         <Pencil size={17} /> Внести изменения
                       </button>
+                      <button
+                        className="document-menu-item"
+                        style={documentMenuItemStyle}
+                        onClick={() => handleArchiveDocument(doc)}
+                        disabled={doc.status === 'archived'}
+                      >
+                        <Archive size={18} color="#7c3aed" />
+                        {doc.status === 'archived' ? 'Уже в архиве' : 'В архив'}
+                      </button>
                       <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
                       <button
                         className="document-menu-item document-menu-item-danger"
@@ -275,7 +294,7 @@ function KnowledgeBase() {
                 >
                   📄 {doc.file_name || 'Без файла'}
                 </button>
-                <span className={`badge badge-${doc.status === 'published' ? 'green' : 'yellow'}`}>
+                <span className={`badge badge-${doc.status === 'published' ? 'green' : doc.status === 'archived' ? 'gray' : 'yellow'}`}>
                   {doc.status}
                 </span>
               </div>
