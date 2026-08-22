@@ -251,6 +251,52 @@ button { cursor: pointer; }
 .form-group label { font-weight: 800; color: #4b5563; }
 .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 8px; }
 
+.document-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #334155;
+  padding: 0 10px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.document-menu-item:hover {
+  background: #f1f5f9;
+}
+
+.document-menu-item-danger {
+  color: #dc2626;
+}
+
+.document-menu-item-danger:hover {
+  background: #fef2f2;
+}
+
+.document-file-link {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  padding: 0;
+  cursor: pointer;
+}
+
+.document-file-link:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.document-file-link:disabled {
+  cursor: default;
+  color: #94a3b8;
+  text-decoration: none;
+}
+
 /* Улучшенные модальные окна */
 .modal-overlay {
   position: fixed;
