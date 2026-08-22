@@ -172,7 +172,11 @@ function KnowledgeBase() {
       ) : (
         <div className="data-list">
           {documents.map((doc) => (
-            <div key={doc.id} className={`data-card${activeMenuId === doc.id ? ' menu-open' : ''}`}>
+            <div
+              key={doc.id}
+              className={`data-card${activeMenuId === doc.id ? ' menu-open' : ''}`}
+              style={{ position: 'relative', zIndex: activeMenuId === doc.id ? 100 : 1 }}
+            >
               <div className="data-card-header" style={{ position: 'relative', paddingRight: '48px' }}>
                 <div className="data-card-title">
                   <button
@@ -216,7 +220,7 @@ function KnowledgeBase() {
                     <div
                       onClick={event => event.stopPropagation()}
                       style={{
-                        position: 'absolute', top: '44px', right: 0, zIndex: 20,
+                        position: 'absolute', top: '44px', right: 0, zIndex: 110,
                         display: 'grid', gap: '4px',
                         width: '250px', padding: '10px', border: '1px solid #e2e8f0',
                         borderRadius: '14px', background: '#fff',
