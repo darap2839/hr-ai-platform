@@ -44,6 +44,7 @@ function KnowledgeBase() {
   };
 
   const handleOpenDocument = async (doc) => {
+    setActiveMenuId(null);
     try {
       const blob = await documentsApi.getDocumentFile(doc.id);
       const url = URL.createObjectURL(blob);
@@ -59,6 +60,7 @@ function KnowledgeBase() {
   };
 
   const handleDownloadDocument = async (doc) => {
+    setActiveMenuId(null);
     try {
       const blob = await documentsApi.getDocumentFile(doc.id, true);
       const url = URL.createObjectURL(blob);
