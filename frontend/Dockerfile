@@ -2,7 +2,7 @@
 # Multi-stage build: Build React app and serve with optimized Nginx
 
 # Stage 1: Build the application
-FROM node:22-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 
 # Set work directory
 WORKDIR /workspace/frontend
