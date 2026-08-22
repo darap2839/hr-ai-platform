@@ -238,9 +238,18 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Progress Steps */}
         <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
             {['Файл', 'Редактирование', 'Готово'].map((label, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                key={idx}
+                style={{
+                  display: 'flex',
+                  flex: idx < 2 ? '1 1 0' : '0 0 auto',
+                  minWidth: 0,
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: step > idx + 1 ? '#166534' : step === idx + 1 ? '#0b73ff' : '#e2e8f0',
@@ -249,7 +258,18 @@ function UploadModal({ onClose, onSubmit }) {
                   {step > idx + 1 ? <Check size={16} /> : idx + 1}
                 </div>
                 <span style={{ fontSize: '14px', color: step === idx + 1 ? '#0b73ff' : '#64748b' }}>{label}</span>
-                {idx < 2 && <div style={{ width: '30px', height: '2px', background: step > idx + 1 ? '#166534' : '#e2e8f0' }} />}
+                {idx < 2 && (
+                  <div
+                    style={{
+                      flex: '1 1 auto',
+                      minWidth: '40px',
+                      height: '2px',
+                      margin: '0 16px',
+                      borderRadius: '999px',
+                      background: step > idx + 1 ? '#166534' : '#e2e8f0'
+                    }}
+                  />
+                )}
               </div>
             ))}
           </div>
