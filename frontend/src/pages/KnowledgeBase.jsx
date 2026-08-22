@@ -266,6 +266,131 @@ function KnowledgeBase() {
   );
 }
 
+function EditDocumentModal({ document: documentItem, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    title: documentItem.title || '',
+    description: documentItem.description || '',
+    doc_type: documentItem.doc_type || 'guide',
+    department: documentItem.department || '',
+    role: documentItem.role || '',
+    content_text: documentItem.content_text || ''
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    if (!formData.title.trim()) {
+      alert('Название документа обязательно');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSubmit(documentItem.id, formData);
+    } catch (error) {
+      alert('Не удалось сохранить изменения: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fieldStyle = {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #cbd5e1',
+    borderRadius: '8px',
+    background: '#fff'
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content"
+        onClick={event => event.stopPropagation()}
+        style={{ width: 'calc(100vw - 48px)', maxWidth: '720px', overflowX: 'hidden' }}
+      >
+        <div className="modal-header">
+          <h2><Pencil size={22} /> Изменить документ</h2>
+          <button className="icon-button" onClick={onClose}><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSave} style={{ display: 'grid', gap: '18px', padding: '24px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Название *</label>
+            <input
+              required
+              value={formData.title}
+              onChange={event => setFormData({ ...formData, title: event.target.value })}
+              style={fieldStyle}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Тип документа</label>
+            <select
+              value={formData.doc_type}
+              onChange={event => setFormData({ ...formData, doc_type: event.target.value })}
+              style={fieldStyle}
+            >
+              <option value="guide">Руководство</option>
+              <option value="policy">Политика</option>
+              <option value="procedure">Процедура</option>
+              <option value="role_profile">Профиль должности</option>
+              <option value="template">Шаблон</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Описание</label>
+            <textarea
+              rows={3}
+              value={formData.description}
+              onChange={event => setFormData({ ...formData, description: event.target.value })}
+              style={{ ...fieldStyle, resize: 'vertical' }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Извлечённый текст</label>
+            <textarea
+              rows={10}
+              value={formData.content_text}
+              onChange={event => setFormData({ ...formData, content_text: event.target.value })}
+              style={{ ...fieldStyle, minHeight: '220px', lineHeight: 1.5, resize: 'vertical' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Отдел</label>
+              <input
+                value={formData.department}
+                onChange={event => setFormData({ ...formData, department: event.target.value })}
+                style={fieldStyle}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Должность</label>
+              <input
+                value={formData.role}
+                onChange={event => setFormData({ ...formData, role: event.target.value })}
+                style={fieldStyle}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', paddingTop: '8px' }}>
+            <button type="button" className="secondary-button" onClick={onClose}>Отмена</button>
+            <button type="submit" className="primary-button" disabled={saving}>
+              {saving ? 'Сохранение...' : 'Сохранить изменения'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // Компонент модалки с wizard
 function UploadModal({ onClose, onSubmit }) {
   const [step, setStep] = useState(1);
