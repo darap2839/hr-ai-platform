@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Q
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+from pathlib import Path
 
 from app.database import get_db
 from app.models.db_models import DocumentModel
@@ -11,6 +12,23 @@ from app.services.minio_service import minio_service
 from app.services.text_extraction_service import text_extraction_service
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
+
+
+@router.post("/preview")
+def preview_document(file: UploadFile = File(...)):
+    """Извлечь редактируемые данные из файла без создания документа."""
+    try:
+        file_bytes = file.file.read()
+        content_text = text_extraction_service.extract_text(file_bytes, file.filename or "")
+        return {
+            "title": Path(file.filename or "Документ").stem,
+            "content_text": content_text or "",
+            "file_name": file.filename,
+            "file_size": len(file_bytes),
+            "mime_type": file.content_type,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Не удалось обработать файл: {exc}") from exc
 
 
 @router.post("", response_model=DocumentResponse)
@@ -22,6 +40,7 @@ def create_document(
     role: Optional[str] = Form(None),
     tags: Optional[str] = Form(""),
     access_level: str = Form("public"),
+    content_text: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
@@ -36,7 +55,6 @@ def create_document(
         file_name = file.filename if file else None
         file_size = file.size if file else None
         mime_type = file.content_type if file else None
-        content_text = None
         
         if file:
             file_bytes = file.file.read()
@@ -50,7 +68,8 @@ def create_document(
             
             if file_path:
                 print(f"✅ File uploaded to MinIO: {file_path}")
-                content_text = text_extraction_service.extract_text(file_bytes, file_name or "")
+                if content_text is None:
+                    content_text = text_extraction_service.extract_text(file_bytes, file_name or "")
                 if content_text:
                     print(f"✅ Text extracted: {len(content_text)} chars")
         
