@@ -83,4 +83,34 @@ class MinioService:
             return None
 
 
+    def download_file(self, object_name: str) -> Optional[bytes]:
+        """Download an object from MinIO."""
+        if not self.client or not object_name:
+            return None
+
+        response = None
+        try:
+            response = self.client.get_object(self.bucket, object_name)
+            return response.read()
+        except S3Error as e:
+            print(f"❌ Error downloading file from MinIO: {e}")
+            return None
+        finally:
+            if response is not None:
+                response.close()
+                response.release_conn()
+
+    def delete_file(self, object_name: str) -> bool:
+        """Delete an object from MinIO."""
+        if not self.client or not object_name:
+            return False
+
+        try:
+            self.client.remove_object(self.bucket, object_name)
+            return True
+        except S3Error as e:
+            print(f"❌ Error deleting file from MinIO: {e}")
+            return False
+
+
 minio_service = MinioService()
