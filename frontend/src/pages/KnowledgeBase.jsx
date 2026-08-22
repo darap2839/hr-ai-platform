@@ -36,13 +36,9 @@ function KnowledgeBase() {
   }, [filters]);
 
   const handleUpload = async (formData) => {
-    try {
-      await documentsApi.uploadDocument(formData);
-      setShowUploadModal(false);
-      fetchDocuments();
-    } catch (error) {
-      alert('Ошибка загрузки: ' + (error.message || 'Неизвестная ошибка'));
-    }
+    const document = await documentsApi.uploadDocument(formData);
+    await fetchDocuments();
+    return document;
   };
 
   return (
@@ -166,10 +162,36 @@ function UploadModal({ onClose, onSubmit }) {
     doc_type: 'guide',
     department: '',
     role: '',
+    content_text: '',
     file: null
   });
   const [uploading, setUploading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState('');
   const fileInputRef = useRef(null);
+
+  const handleContinue = async () => {
+    if (!formData.file) {
+      setExtractionError('Сначала выберите файл');
+      return;
+    }
+
+    setExtracting(true);
+    setExtractionError('');
+    try {
+      const preview = await documentsApi.previewDocument(formData.file);
+      setFormData(prev => ({
+        ...prev,
+        title: prev.title || preview.title || '',
+        content_text: preview.content_text || ''
+      }));
+      setStep(2);
+    } catch (error) {
+      setExtractionError(error.message || 'Не удалось извлечь данные из файла');
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -208,7 +230,7 @@ function UploadModal({ onClose, onSubmit }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '760px' }}>
         <div className="modal-header">
           <h2><FileText size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} />Загрузить документ</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
@@ -217,7 +239,7 @@ function UploadModal({ onClose, onSubmit }) {
         {/* Progress Steps */}
         <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {['Файл', 'Данные', 'Готово'].map((label, idx) => (
+            {['Файл', 'Редактирование', 'Готово'].map((label, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
@@ -256,7 +278,13 @@ function UploadModal({ onClose, onSubmit }) {
                 accept=".pdf,.doc,.docx,.txt" 
                 onChange={e => {
                   if (e.target.files?.[0]) {
-                    setFormData(prev => ({ ...prev, file: e.target.files[0] }));
+                    setFormData(prev => ({
+                      ...prev,
+                      file: e.target.files[0],
+                      title: '',
+                      content_text: ''
+                    }));
+                    setExtractionError('');
                   }
                 }} 
                 style={{ display: 'none' }} 
@@ -280,7 +308,8 @@ function UploadModal({ onClose, onSubmit }) {
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      setFormData(prev => ({ ...prev, file: null }));
+                      setFormData(prev => ({ ...prev, file: null, title: '', content_text: '' }));
+                      setExtractionError('');
                       if (fileInputRef.current) {
                         fileInputRef.current.value = '';
                       }
@@ -306,6 +335,23 @@ function UploadModal({ onClose, onSubmit }) {
                   </p>
                 </div>
               )}
+            </div>
+
+            {extractionError && (
+              <div className="login-error" style={{ marginTop: '16px' }}>
+                {extractionError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleContinue}
+                disabled={!formData.file || extracting}
+              >
+                {extracting ? 'Извлекаем данные...' : 'Продолжить'}
+              </button>
             </div>
           </div>
         )}
@@ -351,6 +397,23 @@ function UploadModal({ onClose, onSubmit }) {
                   rows={3}
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Извлечённый текст
+                </label>
+                <p style={{ margin: '0 0 8px', color: '#64748b', fontSize: '13px' }}>
+                  Проверьте и отредактируйте информацию перед сохранением в базу знаний.
+                </p>
+                <textarea
+                  placeholder="Текст документа появится здесь после обработки файла"
+                  className="w-full px-3 py-2 border rounded"
+                  rows={12}
+                  value={formData.content_text}
+                  onChange={e => setFormData({...formData, content_text: e.target.value})}
+                  style={{ resize: 'vertical', lineHeight: '1.5', fontFamily: 'inherit' }}
                 />
               </div>
 
