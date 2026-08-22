@@ -230,15 +230,15 @@ function UploadModal({ onClose, onSubmit }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content kb-upload-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px' }}>
         <div className="modal-header">
           <h2><FileText size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} />Загрузить документ</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
         </div>
 
         {/* Progress Steps */}
-        <div className="kb-upload-progress">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {['Файл', 'Редактирование', 'Готово'].map((label, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{
@@ -257,7 +257,7 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Step 1: File Upload */}
         {step === 1 && (
-          <div className="kb-upload-step">
+          <div style={{ padding: '40px 24px' }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <h3 style={{ marginBottom: '8px' }}>Загрузите документ</h3>
               <p style={{ color: '#64748b', fontSize: '14px' }}>Поддерживаемые форматы: PDF, DOCX, TXT</p>
@@ -304,7 +304,7 @@ function UploadModal({ onClose, onSubmit }) {
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
                     {(formData.file.size / 1024).toFixed(1)} KB
                   </p>
-                  <div className="kb-file-actions">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '20px' }}>
                     <button
                       type="button"
                       className="secondary-button"
@@ -354,16 +354,16 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Step 2: Document Details */}
         {step === 2 && (
-          <div className="kb-review-step">
-            <h3>Данные документа</h3>
-            <form onSubmit={handleSubmit} className="kb-review-form">
+          <div style={{ padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px' }}>Данные документа</h3>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Название *</label>
                 <input
                   type="text"
                   placeholder="Например: Инструкция по онбордингу"
                   required
-                  className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                   value={formData.title}
                   onChange={e => setFormData({...formData, title: e.target.value})}
                 />
@@ -372,10 +372,9 @@ function UploadModal({ onClose, onSubmit }) {
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Тип документа *</label>
                 <select
-                  className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                   value={formData.doc_type}
                   onChange={e => setFormData({...formData, doc_type: e.target.value})}
-                  style={{ background: 'white' }}
                 >
                   <option value="guide">Руководство</option>
                   <option value="policy">Политика</option>
@@ -389,7 +388,7 @@ function UploadModal({ onClose, onSubmit }) {
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Описание</label>
                 <textarea
                   placeholder="Краткое описание документа..."
-                  className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                   rows={3}
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}
@@ -405,11 +404,10 @@ function UploadModal({ onClose, onSubmit }) {
                 </p>
                 <textarea
                   placeholder="Текст документа появится здесь после обработки файла"
-                  className="w-full px-3 py-2 border rounded"
                   rows={12}
                   value={formData.content_text}
                   onChange={e => setFormData({...formData, content_text: e.target.value})}
-                  style={{ resize: 'vertical', lineHeight: '1.5', fontFamily: 'inherit' }}
+                  style={{ width: '100%', minHeight: '260px', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical', lineHeight: '1.55', fontFamily: 'inherit', background: '#fff' }}
                 />
               </div>
 
@@ -419,7 +417,7 @@ function UploadModal({ onClose, onSubmit }) {
                   <input
                     type="text"
                     placeholder="Например: IT, HR"
-                    className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                     value={formData.department}
                     onChange={e => setFormData({...formData, department: e.target.value})}
                   />
@@ -431,7 +429,7 @@ function UploadModal({ onClose, onSubmit }) {
                     <input
                       type="text"
                       placeholder="Например: Python Developer"
-                      className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                       value={formData.role}
                       onChange={e => setFormData({...formData, role: e.target.value})}
                     />
@@ -455,7 +453,7 @@ function UploadModal({ onClose, onSubmit }) {
                 </div>
               )}
 
-              <div className="kb-modal-actions">
+              <div style={{ paddingTop: '16px', display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                 <button 
                   type="button" 
                   onClick={() => setStep(1)} 
