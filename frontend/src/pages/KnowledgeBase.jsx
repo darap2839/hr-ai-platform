@@ -230,14 +230,14 @@ function UploadModal({ onClose, onSubmit }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '760px' }}>
+      <div className="modal-content kb-upload-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2><FileText size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} />Загрузить документ</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
         </div>
 
         {/* Progress Steps */}
-        <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="kb-upload-progress">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {['Файл', 'Редактирование', 'Готово'].map((label, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -257,10 +257,10 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Step 1: File Upload */}
         {step === 1 && (
-          <div style={{ padding: '32px' }}>
+          <div className="kb-upload-step">
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <h3 style={{ marginBottom: '8px' }}>Загрузите документ</h3>
-              <p style={{ color: '#64748b', fontSize: '14px' }}>Поддерживаемые форматы: PDF, DOC, DOCX, TXT</p>
+              <p style={{ color: '#64748b', fontSize: '14px' }}>Поддерживаемые форматы: PDF, DOCX, TXT</p>
             </div>
 
             <div
@@ -275,7 +275,7 @@ function UploadModal({ onClose, onSubmit }) {
               <input 
                 ref={fileInputRef} 
                 type="file" 
-                accept=".pdf,.doc,.docx,.txt" 
+                accept=".pdf,.docx,.txt" 
                 onChange={e => {
                   if (e.target.files?.[0]) {
                     setFormData(prev => ({
@@ -304,25 +304,31 @@ function UploadModal({ onClose, onSubmit }) {
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
                     {(formData.file.size / 1024).toFixed(1)} KB
                   </p>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setFormData(prev => ({ ...prev, file: null, title: '', content_text: '' }));
-                      setExtractionError('');
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = '';
-                      }
-                    }}
-                    style={{
-                      marginTop: '16px', padding: '8px 16px',
-                      background: '#fee2e2', color: '#dc2626',
-                      border: 'none', borderRadius: '6px',
-                      cursor: 'pointer', fontSize: '14px', fontWeight: '500'
-                    }}
-                  >
-                    Изменить файл
-                  </button>
+                  <div className="kb-file-actions">
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      Заменить
+                    </button>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleContinue();
+                      }}
+                      disabled={extracting}
+                    >
+                      {extracting ? 'Обрабатываем файл...' : 'Продолжить'}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -343,24 +349,14 @@ function UploadModal({ onClose, onSubmit }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button
-                type="button"
-                className="primary-button"
-                onClick={handleContinue}
-                disabled={!formData.file || extracting}
-              >
-                {extracting ? 'Извлекаем данные...' : 'Продолжить'}
-              </button>
-            </div>
           </div>
         )}
 
         {/* Step 2: Document Details */}
         {step === 2 && (
-          <div style={{ padding: '24px' }}>
-            <h3 style={{ marginBottom: '20px' }}>Данные документа</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="kb-review-step">
+            <h3>Данные документа</h3>
+            <form onSubmit={handleSubmit} className="kb-review-form">
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Название *</label>
                 <input
@@ -459,7 +455,7 @@ function UploadModal({ onClose, onSubmit }) {
                 </div>
               )}
 
-              <div className="flex gap-2 justify-end" style={{ marginTop: '24px' }}>
+              <div className="kb-modal-actions">
                 <button 
                   type="button" 
                   onClick={() => setStep(1)} 
