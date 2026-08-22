@@ -155,9 +155,15 @@ function KnowledgeBase() {
         <div className="data-list">
           {documents.map((doc) => (
             <div key={doc.id} className="data-card">
-              <div className="data-card-header">
+              <div className="data-card-header" style={{ position: 'relative', paddingRight: '48px' }}>
                 <div className="data-card-title">
-                  <h3>{doc.title}</h3>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDocument(doc)}
+                    style={{ border: 0, background: 'transparent', padding: 0, color: 'inherit', textAlign: 'left' }}
+                  >
+                    <h3 style={{ margin: 0 }}>{doc.title}</h3>
+                  </button>
                   <div className="data-card-badges">
                     <span className={`badge badge-${
                       doc.doc_type === 'role_profile' ? 'purple' :
@@ -167,16 +173,57 @@ function KnowledgeBase() {
                       {doc.doc_type}
                     </span>
                     {doc.department && (
-                      <span className="badge badge-gray">
-                        {doc.department}
-                      </span>
+                      <span className="badge badge-gray">{doc.department}</span>
                     )}
                     {doc.role && (
-                      <span className="badge badge-indigo">
-                        {doc.role}
-                      </span>
+                      <span className="badge badge-indigo">{doc.role}</span>
                     )}
                   </div>
+                </div>
+
+                <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label={`Действия с документом ${doc.title}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setActiveMenuId(activeMenuId === doc.id ? null : doc.id);
+                    }}
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+
+                  {activeMenuId === doc.id && (
+                    <div
+                      onClick={event => event.stopPropagation()}
+                      style={{
+                        position: 'absolute', top: '44px', right: 0, zIndex: 20,
+                        width: '220px', padding: '8px', border: '1px solid #e2e8f0',
+                        borderRadius: '12px', background: '#fff',
+                        boxShadow: '0 18px 45px rgba(15, 23, 42, 0.16)'
+                      }}
+                    >
+                      <button className="document-menu-item" onClick={() => handleOpenDocument(doc)}>
+                        <ExternalLink size={17} /> Открыть
+                      </button>
+                      <button className="document-menu-item" onClick={() => handleDownloadDocument(doc)}>
+                        <Download size={17} /> Скачать
+                      </button>
+                      <button
+                        className="document-menu-item"
+                        onClick={() => {
+                          setEditingDocument(doc);
+                          setActiveMenuId(null);
+                        }}
+                      >
+                        <Pencil size={17} /> Внести изменения
+                      </button>
+                      <button className="document-menu-item document-menu-item-danger" onClick={() => handleDeleteDocument(doc)}>
+                        <Trash2 size={17} /> Удалить
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -186,7 +233,14 @@ function KnowledgeBase() {
               
               <div className="data-card-footer">
                 <span className="text-muted">📅 {new Date(doc.created_at).toLocaleDateString()}</span>
-                <span className="text-muted">📄 {doc.file_name || 'Без файла'}</span>
+                <button
+                  type="button"
+                  className="document-file-link"
+                  onClick={() => handleOpenDocument(doc)}
+                  disabled={!doc.file_name}
+                >
+                  📄 {doc.file_name || 'Без файла'}
+                </button>
                 <span className={`badge badge-${doc.status === 'published' ? 'green' : 'yellow'}`}>
                   {doc.status}
                 </span>
@@ -199,6 +253,14 @@ function KnowledgeBase() {
       {/* Модальное окно загрузки */}
       {showUploadModal && (
         <UploadModal onClose={() => setShowUploadModal(false)} onSubmit={handleUpload} />
+      )}
+
+      {editingDocument && (
+        <EditDocumentModal
+          document={editingDocument}
+          onClose={() => setEditingDocument(null)}
+          onSubmit={handleUpdateDocument}
+        />
       )}
     </div>
   );
