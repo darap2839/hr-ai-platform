@@ -18,15 +18,34 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 def preview_document(file: UploadFile = File(...)):
     """Извлечь редактируемые данные из файла без создания документа."""
     try:
+        filename = file.filename or ""
+        extension = Path(filename).suffix.lower()
+        if extension not in {".pdf", ".docx", ".txt"}:
+            raise HTTPException(
+                status_code=415,
+                detail="Поддерживаются только файлы PDF, DOCX и TXT",
+            )
+
         file_bytes = file.file.read()
-        content_text = text_extraction_service.extract_text(file_bytes, file.filename or "")
+        if not file_bytes:
+            raise HTTPException(status_code=422, detail="Загруженный файл пуст")
+
+        content_text = text_extraction_service.extract_text(file_bytes, filename)
+        if not content_text or not content_text.strip():
+            raise HTTPException(
+                status_code=422,
+                detail="Не удалось извлечь текст. Проверьте, что документ содержит распознаваемый текст",
+            )
+
         return {
-            "title": Path(file.filename or "Документ").stem,
-            "content_text": content_text or "",
-            "file_name": file.filename,
+            "title": Path(filename).stem,
+            "content_text": content_text.strip(),
+            "file_name": filename,
             "file_size": len(file_bytes),
             "mime_type": file.content_type,
         }
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Не удалось обработать файл: {exc}") from exc
 
