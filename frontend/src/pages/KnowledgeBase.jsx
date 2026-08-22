@@ -1,7 +1,7 @@
 // frontend/src/pages/KnowledgeBase.jsx
 import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Pencil, Archive, Trash2 } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2 } from 'lucide-react';
 
 const documentMenuItemStyle = {
   display: 'flex',
@@ -60,20 +60,9 @@ function KnowledgeBase() {
     return document;
   };
 
-  const handleOpenDocument = async (doc) => {
+  const handleOpenDocument = (doc) => {
     setActiveMenuId(null);
-    try {
-      const blob = await documentsApi.getDocumentFile(doc.id);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (error) {
-      alert('Не удалось открыть файл: ' + error.message);
-    }
+    setEditingDocument(doc);
   };
 
   const handleDownloadDocument = async (doc) => {
@@ -183,7 +172,7 @@ function KnowledgeBase() {
       ) : (
         <div className="data-list">
           {documents.map((doc) => (
-            <div key={doc.id} className="data-card">
+            <div key={doc.id} className={`data-card${activeMenuId === doc.id ? ' menu-open' : ''}`}>
               <div className="data-card-header" style={{ position: 'relative', paddingRight: '48px' }}>
                 <div className="data-card-title">
                   <button
@@ -247,16 +236,6 @@ function KnowledgeBase() {
                         onClick={() => handleDownloadDocument(doc)}
                       >
                         <Download size={18} color="#0b73ff" /> Скачать
-                      </button>
-                      <button
-                        className="document-menu-item"
-                        style={documentMenuItemStyle}
-                        onClick={() => {
-                          setEditingDocument(doc);
-                          setActiveMenuId(null);
-                        }}
-                      >
-                        <Pencil size={17} /> Внести изменения
                       </button>
                       <button
                         className="document-menu-item"
@@ -363,7 +342,7 @@ function EditDocumentModal({ document: documentItem, onClose, onSubmit }) {
         style={{ width: 'calc(100vw - 48px)', maxWidth: '720px', overflowX: 'hidden' }}
       >
         <div className="modal-header">
-          <h2><Pencil size={22} /> Изменить документ</h2>
+          <h2><FileText size={22} /> Документ</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
         </div>
 
