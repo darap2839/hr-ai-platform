@@ -83,6 +83,17 @@ class MinioService:
             return None
 
 
+    def file_exists(self, object_name: str) -> bool:
+        """Return True when an object exists in MinIO."""
+        if not self.client or not object_name:
+            return False
+
+        try:
+            self.client.stat_object(self.bucket, object_name)
+            return True
+        except S3Error:
+            return False
+
     def download_file(self, object_name: str) -> Optional[bytes]:
         """Download an object from MinIO."""
         if not self.client or not object_name:
