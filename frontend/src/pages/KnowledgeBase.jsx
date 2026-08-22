@@ -3,6 +3,23 @@ import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '../api/client';
 import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Pencil, Trash2 } from 'lucide-react';
 
+const documentMenuItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  width: '100%',
+  minHeight: '44px',
+  border: 0,
+  borderRadius: '10px',
+  background: 'transparent',
+  color: '#334155',
+  padding: '0 12px',
+  fontSize: '14px',
+  fontWeight: 700,
+  textAlign: 'left',
+  whiteSpace: 'nowrap'
+};
+
 function KnowledgeBase() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -201,19 +218,29 @@ function KnowledgeBase() {
                       onClick={event => event.stopPropagation()}
                       style={{
                         position: 'absolute', top: '44px', right: 0, zIndex: 20,
-                        width: '220px', padding: '8px', border: '1px solid #e2e8f0',
-                        borderRadius: '12px', background: '#fff',
+                        display: 'grid', gap: '4px',
+                        width: '250px', padding: '10px', border: '1px solid #e2e8f0',
+                        borderRadius: '14px', background: '#fff',
                         boxShadow: '0 18px 45px rgba(15, 23, 42, 0.16)'
                       }}
                     >
-                      <button className="document-menu-item" onClick={() => handleOpenDocument(doc)}>
-                        <ExternalLink size={17} /> Открыть
-                      </button>
-                      <button className="document-menu-item" onClick={() => handleDownloadDocument(doc)}>
-                        <Download size={17} /> Скачать
+                      <button
+                        className="document-menu-item"
+                        style={documentMenuItemStyle}
+                        onClick={() => handleOpenDocument(doc)}
+                      >
+                        <ExternalLink size={18} color="#0b73ff" /> Открыть
                       </button>
                       <button
                         className="document-menu-item"
+                        style={documentMenuItemStyle}
+                        onClick={() => handleDownloadDocument(doc)}
+                      >
+                        <Download size={18} color="#0b73ff" /> Скачать
+                      </button>
+                      <button
+                        className="document-menu-item"
+                        style={documentMenuItemStyle}
                         onClick={() => {
                           setEditingDocument(doc);
                           setActiveMenuId(null);
@@ -221,8 +248,13 @@ function KnowledgeBase() {
                       >
                         <Pencil size={17} /> Внести изменения
                       </button>
-                      <button className="document-menu-item document-menu-item-danger" onClick={() => handleDeleteDocument(doc)}>
-                        <Trash2 size={17} /> Удалить
+                      <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
+                      <button
+                        className="document-menu-item document-menu-item-danger"
+                        style={{ ...documentMenuItemStyle, color: '#dc2626' }}
+                        onClick={() => handleDeleteDocument(doc)}
+                      >
+                        <Trash2 size={18} /> Удалить
                       </button>
                     </div>
                   )}
