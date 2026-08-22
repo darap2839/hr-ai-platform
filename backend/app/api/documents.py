@@ -133,7 +133,10 @@ def list_documents(
     db: Session = Depends(get_db)
 ):
     """Список документов с фильтрацией"""
-    query = db.query(DocumentModel).filter(DocumentModel.is_deleted == False)
+    query = db.query(DocumentModel).filter(
+        DocumentModel.is_deleted == False,
+        DocumentModel.file_path.isnot(None),
+    )
     
     if doc_type:
         try:
@@ -159,7 +162,7 @@ def list_documents(
         )
     
     docs = query.offset(offset).limit(limit).all()
-    return docs
+    return [doc for doc in docs if minio_service.file_exists(doc.file_path)]
 
 
 @router.get("/{doc_id}/file")
