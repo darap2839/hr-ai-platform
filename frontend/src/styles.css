@@ -251,6 +251,12 @@ button { cursor: pointer; }
 .form-group label { font-weight: 800; color: #4b5563; }
 .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 8px; }
 
+.data-card.menu-open,
+.data-card.menu-open:hover {
+  transform: none !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04) !important;
+}
+
 .document-menu-item {
   display: flex;
   align-items: center;
