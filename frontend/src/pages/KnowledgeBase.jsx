@@ -1,7 +1,7 @@
 // frontend/src/pages/KnowledgeBase.jsx
 import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Pencil, Trash2 } from 'lucide-react';
 
 function KnowledgeBase() {
   const [documents, setDocuments] = useState([]);
@@ -12,6 +12,8 @@ function KnowledgeBase() {
     search: ''
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [editingDocument, setEditingDocument] = useState(null);
 
   // Загрузка документов
   const fetchDocuments = async () => {
@@ -41,8 +43,57 @@ function KnowledgeBase() {
     return document;
   };
 
+  const handleOpenDocument = async (doc) => {
+    try {
+      const blob = await documentsApi.getDocumentFile(doc.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      alert('Не удалось открыть файл: ' + error.message);
+    }
+  };
+
+  const handleDownloadDocument = async (doc) => {
+    try {
+      const blob = await documentsApi.getDocumentFile(doc.id, true);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.file_name || `document-${doc.id}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Не удалось скачать файл: ' + error.message);
+    }
+  };
+
+  const handleDeleteDocument = async (doc) => {
+    if (!window.confirm(`Удалить документ «${doc.title}»?`)) return;
+
+    try {
+      await documentsApi.deleteDocument(doc.id);
+      setActiveMenuId(null);
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось удалить документ: ' + error.message);
+    }
+  };
+
+  const handleUpdateDocument = async (id, payload) => {
+    await documentsApi.updateDocument(id, payload);
+    setEditingDocument(null);
+    await fetchDocuments();
+  };
+
   return (
-    <div className="page-container">
+    <div className="page-container" onClick={() => setActiveMenuId(null)}>
       {/* Заголовок */}
       <div className="page-header">
         <div>
