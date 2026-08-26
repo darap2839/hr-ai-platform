@@ -165,10 +165,34 @@ export const documentsApi = {
     return apiRequest(path);
   },
   
+  previewDocument: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return fetch(`${import.meta.env.VITE_API_URL || ''}/api/documents/preview`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: formData,
+    }).then(async (response) => {
+      if (!response.ok) {
+        let message = `Request failed: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body.detail || message;
+        } catch {
+          // Keep default message when the response is not JSON.
+        }
+        throw new Error(message);
+      }
+      return response.json();
+    });
+  },
+
   uploadDocument: (formData) => {
     // Для загрузки файлов не используем JSON Content-Type
     return fetch(`${import.meta.env.VITE_API_URL || ''}/api/documents`, {
       method: 'POST',
+      headers: getAuthHeaders(),
       body: formData,
     }).then(async (response) => {
       if (!response.ok) {
@@ -186,6 +210,30 @@ export const documentsApi = {
   },
   
   getDocument: (id) => apiRequest(`/api/documents/${id}`),
+
+  getDocumentFile: async (id, download = false) => {
+    const response = await fetch(
+      `${API_URL}/api/documents/${id}/file?download=${download}`,
+      { headers: getAuthHeaders() }
+    );
+    if (!response.ok) {
+      let message = `Request failed: ${response.status}`;
+      try {
+        const body = await response.json();
+        message = body.detail || message;
+      } catch {
+        // Keep default message when the response is not JSON.
+      }
+      throw new Error(message);
+    }
+    return response.blob();
+  },
+
+  updateDocument: (id, payload) => apiRequest(`/api/documents/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }),
+
   deleteDocument: (id) => apiRequest(`/api/documents/${id}`, { method: 'DELETE' }),
 };
 

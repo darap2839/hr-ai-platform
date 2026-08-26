@@ -31,6 +31,7 @@ class DocumentUpdate(BaseModel):
     role: Optional[str] = None
     tags: Optional[str] = None
     access_level: Optional[str] = None
+    content_text: Optional[str] = None
     status: Optional[Annotated[DocumentStatus, Field(default="draft")]] = None
 
 

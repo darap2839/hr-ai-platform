@@ -1,7 +1,24 @@
 // frontend/src/pages/KnowledgeBase.jsx
 import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2 } from 'lucide-react';
+
+const documentMenuItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  width: '100%',
+  minHeight: '44px',
+  border: 0,
+  borderRadius: '10px',
+  background: 'transparent',
+  color: '#334155',
+  padding: '0 12px',
+  fontSize: '14px',
+  fontWeight: 700,
+  textAlign: 'left',
+  whiteSpace: 'nowrap'
+};
 
 function KnowledgeBase() {
   const [documents, setDocuments] = useState([]);
@@ -12,6 +29,8 @@ function KnowledgeBase() {
     search: ''
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [editingDocument, setEditingDocument] = useState(null);
 
   // Загрузка документов
   const fetchDocuments = async () => {
@@ -36,17 +55,63 @@ function KnowledgeBase() {
   }, [filters]);
 
   const handleUpload = async (formData) => {
+    const document = await documentsApi.uploadDocument(formData);
+    await fetchDocuments();
+    return document;
+  };
+
+  const handleOpenDocument = (doc) => {
+    setActiveMenuId(null);
+    setEditingDocument(doc);
+  };
+
+  const handleDownloadDocument = async (doc) => {
+    setActiveMenuId(null);
     try {
-      await documentsApi.uploadDocument(formData);
-      setShowUploadModal(false);
-      fetchDocuments();
+      const blob = await documentsApi.getDocumentFile(doc.id, true);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.file_name || `document-${doc.id}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     } catch (error) {
-      alert('Ошибка загрузки: ' + (error.message || 'Неизвестная ошибка'));
+      alert('Не удалось скачать файл: ' + error.message);
     }
   };
 
+  const handleArchiveDocument = async (doc) => {
+    try {
+      setActiveMenuId(null);
+      await documentsApi.updateDocument(doc.id, { status: 'archived' });
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось переместить документ в архив: ' + error.message);
+    }
+  };
+
+  const handleDeleteDocument = async (doc) => {
+    if (!window.confirm(`Удалить документ «${doc.title}»?`)) return;
+
+    try {
+      await documentsApi.deleteDocument(doc.id);
+      setActiveMenuId(null);
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось удалить документ: ' + error.message);
+    }
+  };
+
+  const handleUpdateDocument = async (id, payload) => {
+    await documentsApi.updateDocument(id, payload);
+    setEditingDocument(null);
+    await fetchDocuments();
+  };
+
   return (
-    <div className="page-container">
+    <div className="page-container" onClick={() => setActiveMenuId(null)}>
       {/* Заголовок */}
       <div className="page-header">
         <div>
@@ -107,10 +172,20 @@ function KnowledgeBase() {
       ) : (
         <div className="data-list">
           {documents.map((doc) => (
-            <div key={doc.id} className="data-card">
-              <div className="data-card-header">
+            <div
+              key={doc.id}
+              className={`data-card${activeMenuId === doc.id ? ' menu-open' : ''}`}
+              style={{ position: 'relative', zIndex: activeMenuId === doc.id ? 100 : 1 }}
+            >
+              <div className="data-card-header" style={{ position: 'relative', paddingRight: '48px' }}>
                 <div className="data-card-title">
-                  <h3>{doc.title}</h3>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDocument(doc)}
+                    style={{ border: 0, background: 'transparent', padding: 0, color: 'inherit', textAlign: 'left' }}
+                  >
+                    <h3 style={{ margin: 0 }}>{doc.title}</h3>
+                  </button>
                   <div className="data-card-badges">
                     <span className={`badge badge-${
                       doc.doc_type === 'role_profile' ? 'purple' :
@@ -120,16 +195,71 @@ function KnowledgeBase() {
                       {doc.doc_type}
                     </span>
                     {doc.department && (
-                      <span className="badge badge-gray">
-                        {doc.department}
-                      </span>
+                      <span className="badge badge-gray">{doc.department}</span>
                     )}
                     {doc.role && (
-                      <span className="badge badge-indigo">
-                        {doc.role}
-                      </span>
+                      <span className="badge badge-indigo">{doc.role}</span>
                     )}
                   </div>
+                </div>
+
+                <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label={`Действия с документом ${doc.title}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setActiveMenuId(activeMenuId === doc.id ? null : doc.id);
+                    }}
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+
+                  {activeMenuId === doc.id && (
+                    <div
+                      onClick={event => event.stopPropagation()}
+                      style={{
+                        position: 'absolute', top: '44px', right: 0, zIndex: 110,
+                        display: 'grid', gap: '4px',
+                        width: '250px', padding: '10px', border: '1px solid #e2e8f0',
+                        borderRadius: '14px', background: '#fff',
+                        boxShadow: '0 18px 45px rgba(15, 23, 42, 0.16)'
+                      }}
+                    >
+                      <button
+                        className="document-menu-item"
+                        style={documentMenuItemStyle}
+                        onClick={() => handleOpenDocument(doc)}
+                      >
+                        <ExternalLink size={18} color="#0b73ff" /> Открыть
+                      </button>
+                      <button
+                        className="document-menu-item"
+                        style={documentMenuItemStyle}
+                        onClick={() => handleDownloadDocument(doc)}
+                      >
+                        <Download size={18} color="#0b73ff" /> Скачать
+                      </button>
+                      <button
+                        className="document-menu-item"
+                        style={documentMenuItemStyle}
+                        onClick={() => handleArchiveDocument(doc)}
+                        disabled={doc.status === 'archived'}
+                      >
+                        <Archive size={18} color="#7c3aed" />
+                        {doc.status === 'archived' ? 'Уже в архиве' : 'В архив'}
+                      </button>
+                      <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
+                      <button
+                        className="document-menu-item document-menu-item-danger"
+                        style={{ ...documentMenuItemStyle, color: '#dc2626' }}
+                        onClick={() => handleDeleteDocument(doc)}
+                      >
+                        <Trash2 size={18} /> Удалить
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -139,8 +269,15 @@ function KnowledgeBase() {
               
               <div className="data-card-footer">
                 <span className="text-muted">📅 {new Date(doc.created_at).toLocaleDateString()}</span>
-                <span className="text-muted">📄 {doc.file_name || 'Без файла'}</span>
-                <span className={`badge badge-${doc.status === 'published' ? 'green' : 'yellow'}`}>
+                <button
+                  type="button"
+                  className="document-file-link"
+                  onClick={() => handleOpenDocument(doc)}
+                  disabled={!doc.file_name}
+                >
+                  📄 {doc.file_name || 'Без файла'}
+                </button>
+                <span className={`badge badge-${doc.status === 'published' ? 'green' : doc.status === 'archived' ? 'gray' : 'yellow'}`}>
                   {doc.status}
                 </span>
               </div>
@@ -153,6 +290,139 @@ function KnowledgeBase() {
       {showUploadModal && (
         <UploadModal onClose={() => setShowUploadModal(false)} onSubmit={handleUpload} />
       )}
+
+      {editingDocument && (
+        <EditDocumentModal
+          document={editingDocument}
+          onClose={() => setEditingDocument(null)}
+          onSubmit={handleUpdateDocument}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditDocumentModal({ document: documentItem, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    title: documentItem.title || '',
+    description: documentItem.description || '',
+    doc_type: documentItem.doc_type || 'guide',
+    department: documentItem.department || '',
+    role: documentItem.role || '',
+    content_text: documentItem.content_text || ''
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    if (!formData.title.trim()) {
+      alert('Название документа обязательно');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSubmit(documentItem.id, formData);
+    } catch (error) {
+      alert('Не удалось сохранить изменения: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fieldStyle = {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #cbd5e1',
+    borderRadius: '8px',
+    background: '#fff'
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content"
+        onClick={event => event.stopPropagation()}
+        style={{ width: 'calc(100vw - 48px)', maxWidth: '720px', overflowX: 'hidden' }}
+      >
+        <div className="modal-header">
+          <h2><FileText size={22} /> Документ</h2>
+          <button className="icon-button" onClick={onClose}><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSave} style={{ display: 'grid', gap: '18px', padding: '24px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Название *</label>
+            <input
+              required
+              value={formData.title}
+              onChange={event => setFormData({ ...formData, title: event.target.value })}
+              style={fieldStyle}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Тип документа</label>
+            <select
+              value={formData.doc_type}
+              onChange={event => setFormData({ ...formData, doc_type: event.target.value })}
+              style={fieldStyle}
+            >
+              <option value="guide">Руководство</option>
+              <option value="policy">Политика</option>
+              <option value="procedure">Процедура</option>
+              <option value="role_profile">Профиль должности</option>
+              <option value="template">Шаблон</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Описание</label>
+            <textarea
+              rows={3}
+              value={formData.description}
+              onChange={event => setFormData({ ...formData, description: event.target.value })}
+              style={{ ...fieldStyle, resize: 'vertical' }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Извлечённый текст</label>
+            <textarea
+              rows={10}
+              value={formData.content_text}
+              onChange={event => setFormData({ ...formData, content_text: event.target.value })}
+              style={{ ...fieldStyle, minHeight: '220px', lineHeight: 1.5, resize: 'vertical' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Отдел</label>
+              <input
+                value={formData.department}
+                onChange={event => setFormData({ ...formData, department: event.target.value })}
+                style={fieldStyle}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700 }}>Должность</label>
+              <input
+                value={formData.role}
+                onChange={event => setFormData({ ...formData, role: event.target.value })}
+                style={fieldStyle}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', paddingTop: '8px' }}>
+            <button type="button" className="secondary-button" onClick={onClose}>Отмена</button>
+            <button type="submit" className="primary-button" disabled={saving}>
+              {saving ? 'Сохранение...' : 'Сохранить изменения'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -166,10 +436,36 @@ function UploadModal({ onClose, onSubmit }) {
     doc_type: 'guide',
     department: '',
     role: '',
+    content_text: '',
     file: null
   });
   const [uploading, setUploading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState('');
   const fileInputRef = useRef(null);
+
+  const handleContinue = async () => {
+    if (!formData.file) {
+      setExtractionError('Сначала выберите файл');
+      return;
+    }
+
+    setExtracting(true);
+    setExtractionError('');
+    try {
+      const preview = await documentsApi.previewDocument(formData.file);
+      setFormData(prev => ({
+        ...prev,
+        title: prev.title || preview.title || '',
+        content_text: preview.content_text || ''
+      }));
+      setStep(2);
+    } catch (error) {
+      setExtractionError(error.message || 'Не удалось извлечь данные из файла');
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -208,7 +504,7 @@ function UploadModal({ onClose, onSubmit }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: 'calc(100vw - 48px)', maxWidth: '760px', overflowX: 'hidden' }}>
         <div className="modal-header">
           <h2><FileText size={24} style={{ marginRight: '8px', verticalAlign: 'middle' }} />Загрузить документ</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
@@ -216,9 +512,18 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Progress Steps */}
         <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {['Файл', 'Данные', 'Готово'].map((label, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+            {['Файл', 'Редактирование', 'Готово'].map((label, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'flex',
+                  flex: idx < 2 ? '1 1 0' : '0 0 auto',
+                  minWidth: 0,
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: step > idx + 1 ? '#166534' : step === idx + 1 ? '#0b73ff' : '#e2e8f0',
@@ -227,7 +532,18 @@ function UploadModal({ onClose, onSubmit }) {
                   {step > idx + 1 ? <Check size={16} /> : idx + 1}
                 </div>
                 <span style={{ fontSize: '14px', color: step === idx + 1 ? '#0b73ff' : '#64748b' }}>{label}</span>
-                {idx < 2 && <div style={{ width: '30px', height: '2px', background: step > idx + 1 ? '#166534' : '#e2e8f0' }} />}
+                {idx < 2 && (
+                  <div
+                    style={{
+                      flex: '1 1 auto',
+                      minWidth: '40px',
+                      height: '2px',
+                      margin: '0 16px',
+                      borderRadius: '999px',
+                      background: step > idx + 1 ? '#166534' : '#e2e8f0'
+                    }}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -235,10 +551,10 @@ function UploadModal({ onClose, onSubmit }) {
 
         {/* Step 1: File Upload */}
         {step === 1 && (
-          <div style={{ padding: '32px' }}>
+          <div style={{ padding: '40px 24px' }}>
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <h3 style={{ marginBottom: '8px' }}>Загрузите документ</h3>
-              <p style={{ color: '#64748b', fontSize: '14px' }}>Поддерживаемые форматы: PDF, DOC, DOCX, TXT</p>
+              <p style={{ color: '#64748b', fontSize: '14px' }}>Поддерживаемые форматы: PDF, DOCX, TXT</p>
             </div>
 
             <div
@@ -253,10 +569,16 @@ function UploadModal({ onClose, onSubmit }) {
               <input 
                 ref={fileInputRef} 
                 type="file" 
-                accept=".pdf,.doc,.docx,.txt" 
+                accept=".pdf,.docx,.txt" 
                 onChange={e => {
                   if (e.target.files?.[0]) {
-                    setFormData(prev => ({ ...prev, file: e.target.files[0] }));
+                    setFormData(prev => ({
+                      ...prev,
+                      file: e.target.files[0],
+                      title: '',
+                      content_text: ''
+                    }));
+                    setExtractionError('');
                   }
                 }} 
                 style={{ display: 'none' }} 
@@ -276,24 +598,33 @@ function UploadModal({ onClose, onSubmit }) {
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
                     {(formData.file.size / 1024).toFixed(1)} KB
                   </p>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setFormData(prev => ({ ...prev, file: null }));
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = '';
-                      }
-                    }}
-                    style={{
-                      marginTop: '16px', padding: '8px 16px',
-                      background: '#fee2e2', color: '#dc2626',
-                      border: 'none', borderRadius: '6px',
-                      cursor: 'pointer', fontSize: '14px', fontWeight: '500'
-                    }}
-                  >
-                    Изменить файл
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%', marginTop: '24px' }}>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      style={{ minWidth: '130px' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      Заменить
+                    </button>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      style={{ minWidth: '170px' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleContinue();
+                      }}
+                      disabled={extracting}
+                    >
+                      {extracting ? 'Обрабатываем файл...' : 'Продолжить'}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -307,21 +638,28 @@ function UploadModal({ onClose, onSubmit }) {
                 </div>
               )}
             </div>
+
+            {extractionError && (
+              <div className="login-error" style={{ marginTop: '16px' }}>
+                {extractionError}
+              </div>
+            )}
+
           </div>
         )}
 
         {/* Step 2: Document Details */}
         {step === 2 && (
-          <div style={{ padding: '24px' }}>
-            <h3 style={{ marginBottom: '20px' }}>Данные документа</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div style={{ width: '100%', padding: '24px', boxSizing: 'border-box' }}>
+            <h3 style={{ margin: '0 0 20px' }}>Данные документа</h3>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', width: '100%', minWidth: 0, gap: '20px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Название *</label>
                 <input
                   type="text"
                   placeholder="Например: Инструкция по онбордингу"
                   required
-                  className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                   value={formData.title}
                   onChange={e => setFormData({...formData, title: e.target.value})}
                 />
@@ -330,10 +668,9 @@ function UploadModal({ onClose, onSubmit }) {
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Тип документа *</label>
                 <select
-                  className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                   value={formData.doc_type}
                   onChange={e => setFormData({...formData, doc_type: e.target.value})}
-                  style={{ background: 'white' }}
                 >
                   <option value="guide">Руководство</option>
                   <option value="policy">Политика</option>
@@ -347,20 +684,36 @@ function UploadModal({ onClose, onSubmit }) {
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Описание</label>
                 <textarea
                   placeholder="Краткое описание документа..."
-                  className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                   rows={3}
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+                  Извлечённый текст
+                </label>
+                <p style={{ margin: '0 0 8px', color: '#64748b', fontSize: '13px' }}>
+                  Проверьте и отредактируйте информацию перед сохранением в базу знаний.
+                </p>
+                <textarea
+                  placeholder="Текст документа появится здесь после обработки файла"
+                  rows={12}
+                  value={formData.content_text}
+                  onChange={e => setFormData({...formData, content_text: e.target.value})}
+                  style={{ width: '100%', minHeight: '260px', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical', lineHeight: '1.55', fontFamily: 'inherit', background: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', width: '100%', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Отдел</label>
                   <input
                     type="text"
                     placeholder="Например: IT, HR"
-                    className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                     value={formData.department}
                     onChange={e => setFormData({...formData, department: e.target.value})}
                   />
@@ -372,7 +725,7 @@ function UploadModal({ onClose, onSubmit }) {
                     <input
                       type="text"
                       placeholder="Например: Python Developer"
-                      className="w-full px-3 py-2 border rounded"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff' }}
                       value={formData.role}
                       onChange={e => setFormData({...formData, role: e.target.value})}
                     />
@@ -383,8 +736,8 @@ function UploadModal({ onClose, onSubmit }) {
               {/* File Preview */}
               {formData.file && (
                 <div style={{ 
-                  padding: '12px', background: '#f1f5f9', borderRadius: '8px',
-                  display: 'flex', alignItems: 'center', gap: '12px'
+                  width: '100%', padding: '12px', background: '#f1f5f9', borderRadius: '8px',
+                  display: 'flex', alignItems: 'center', gap: '12px', boxSizing: 'border-box'
                 }}>
                   <FileText size={20} color="#0b73ff" />
                   <div style={{ flex: 1 }}>
@@ -396,7 +749,7 @@ function UploadModal({ onClose, onSubmit }) {
                 </div>
               )}
 
-              <div className="flex gap-2 justify-end" style={{ marginTop: '24px' }}>
+              <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: '24px', paddingTop: '16px', boxSizing: 'border-box' }}>
                 <button 
                   type="button" 
                   onClick={() => setStep(1)} 

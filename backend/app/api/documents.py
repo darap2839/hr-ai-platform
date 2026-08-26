@@ -1,16 +1,54 @@
 """Documents API - База знаний"""
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+from pathlib import Path
+from urllib.parse import quote
 
 from app.database import get_db
 from app.models.db_models import DocumentModel
-from app.schemas.document import DocumentResponse, DocumentCreate, DocumentType, DocumentStatus
+from app.schemas.document import DocumentResponse, DocumentCreate, DocumentUpdate, DocumentType, DocumentStatus
 from app.services.minio_service import minio_service
 from app.services.text_extraction_service import text_extraction_service
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
+
+
+@router.post("/preview")
+def preview_document(file: UploadFile = File(...)):
+    """Извлечь редактируемые данные из файла без создания документа."""
+    try:
+        filename = file.filename or ""
+        extension = Path(filename).suffix.lower()
+        if extension not in {".pdf", ".docx", ".txt"}:
+            raise HTTPException(
+                status_code=415,
+                detail="Поддерживаются только файлы PDF, DOCX и TXT",
+            )
+
+        file_bytes = file.file.read()
+        if not file_bytes:
+            raise HTTPException(status_code=422, detail="Загруженный файл пуст")
+
+        content_text = text_extraction_service.extract_text(file_bytes, filename)
+        if not content_text or not content_text.strip():
+            raise HTTPException(
+                status_code=422,
+                detail="Не удалось извлечь текст. Проверьте, что документ содержит распознаваемый текст",
+            )
+
+        return {
+            "title": Path(filename).stem,
+            "content_text": content_text.strip(),
+            "file_name": filename,
+            "file_size": len(file_bytes),
+            "mime_type": file.content_type,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Не удалось обработать файл: {exc}") from exc
 
 
 @router.post("", response_model=DocumentResponse)
@@ -22,6 +60,7 @@ def create_document(
     role: Optional[str] = Form(None),
     tags: Optional[str] = Form(""),
     access_level: str = Form("public"),
+    content_text: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
@@ -36,7 +75,6 @@ def create_document(
         file_name = file.filename if file else None
         file_size = file.size if file else None
         mime_type = file.content_type if file else None
-        content_text = None
         
         if file:
             file_bytes = file.file.read()
@@ -50,7 +88,8 @@ def create_document(
             
             if file_path:
                 print(f"✅ File uploaded to MinIO: {file_path}")
-                content_text = text_extraction_service.extract_text(file_bytes, file_name or "")
+                if content_text is None:
+                    content_text = text_extraction_service.extract_text(file_bytes, file_name or "")
                 if content_text:
                     print(f"✅ Text extracted: {len(content_text)} chars")
         
@@ -94,7 +133,10 @@ def list_documents(
     db: Session = Depends(get_db)
 ):
     """Список документов с фильтрацией"""
-    query = db.query(DocumentModel).filter(DocumentModel.is_deleted == False)
+    query = db.query(DocumentModel).filter(
+        DocumentModel.is_deleted == False,
+        DocumentModel.file_path.isnot(None),
+    )
     
     if doc_type:
         try:
@@ -120,7 +162,63 @@ def list_documents(
         )
     
     docs = query.offset(offset).limit(limit).all()
-    return docs
+    return [doc for doc in docs if minio_service.file_exists(doc.file_path)]
+
+
+@router.get("/{doc_id}/file")
+def get_document_file(
+    doc_id: int,
+    download: bool = Query(False),
+    db: Session = Depends(get_db),
+):
+    """Открыть или скачать исходный файл документа."""
+    doc = db.query(DocumentModel).filter(
+        DocumentModel.id == doc_id,
+        DocumentModel.is_deleted == False,
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if not doc.file_path:
+        raise HTTPException(status_code=404, detail="У документа нет загруженного файла")
+
+    file_bytes = minio_service.download_file(doc.file_path)
+    if file_bytes is None:
+        raise HTTPException(status_code=502, detail="Не удалось получить файл из хранилища")
+
+    disposition = "attachment" if download else "inline"
+    encoded_name = quote(doc.file_name or f"document-{doc.id}")
+    return Response(
+        content=file_bytes,
+        media_type=doc.mime_type or "application/octet-stream",
+        headers={
+            "Content-Disposition": f"{disposition}; filename*=UTF-8''{encoded_name}",
+            "Content-Length": str(len(file_bytes)),
+        },
+    )
+
+
+@router.put("/{doc_id}", response_model=DocumentResponse)
+def update_document(
+    doc_id: int,
+    payload: DocumentUpdate,
+    db: Session = Depends(get_db),
+):
+    """Обновить метаданные и извлечённый текст документа."""
+    doc = db.query(DocumentModel).filter(
+        DocumentModel.id == doc_id,
+        DocumentModel.is_deleted == False,
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(doc, field, value)
+
+    db.commit()
+    db.refresh(doc)
+    return doc
 
 
 @router.get("/{doc_id}", response_model=DocumentResponse)
@@ -161,6 +259,9 @@ def delete_document(doc_id: int, db: Session = Depends(get_db)):
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
     
+    if doc.file_path:
+        minio_service.delete_file(doc.file_path)
+
     doc.is_deleted = True
     db.commit()
     
