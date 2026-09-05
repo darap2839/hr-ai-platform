@@ -43,6 +43,7 @@ describe('KnowledgeDocumentDetail', () => {
 
     expect(await screen.findByRole('heading', { name: documentItem.title })).toBeInTheDocument();
     expect(screen.getByText(documentItem.content_text)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Содержание документа' })).toHaveAttribute('tabindex', '0');
     expect(screen.queryByDisplayValue(documentItem.title)).not.toBeInTheDocument();
   });
 

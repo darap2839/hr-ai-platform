@@ -153,7 +153,14 @@ export default function KnowledgeDocumentDetail() {
             {documentItem.description && <section className="card"><h2>Краткое описание</h2><p>{documentItem.description}</p></section>}
             <section className="card">
               <h2><FileText size={20} /> Содержание документа</h2>
-              <div className="knowledge-document-content">{documentItem.content_text || 'В документе нет извлечённого текста.'}</div>
+              <div
+                className="knowledge-document-content"
+                role="region"
+                aria-label="Содержание документа"
+                tabIndex={0}
+              >
+                {documentItem.content_text || 'В документе нет извлечённого текста.'}
+              </div>
             </section>
           </main>
           <aside className="knowledge-document-sidebar">

@@ -202,10 +202,39 @@
 }
 
 .knowledge-document-content {
+  height: clamp(360px, calc(100vh - 350px), 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #94a3b8 #f1f5f9;
+  scrollbar-width: thin;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 18px 20px;
   color: #334155;
   line-height: 1.8;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.knowledge-document-content:focus {
+  border-color: #0b73ff;
+  outline: 3px solid rgba(11, 115, 255, 0.1);
+}
+
+.knowledge-document-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.knowledge-document-content::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: #f1f5f9;
+}
+
+.knowledge-document-content::-webkit-scrollbar-thumb {
+  border: 2px solid #f1f5f9;
+  border-radius: 999px;
+  background: #94a3b8;
 }
 
 .knowledge-document-sidebar h3 {
@@ -433,6 +462,12 @@
 }
 
 @media (max-width: 640px) {
+  .knowledge-document-content {
+    height: min(58vh, 560px);
+    min-height: 320px;
+    padding: 14px 16px;
+  }
+
   .knowledge-document-header,
   .knowledge-document-actions {
     width: 100%;
