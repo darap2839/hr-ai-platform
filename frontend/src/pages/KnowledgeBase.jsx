@@ -1,7 +1,7 @@
 // frontend/src/pages/KnowledgeBase.jsx
 import { useState, useEffect, useRef } from 'react';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2 } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2, Pencil } from 'lucide-react';
 
 const documentMenuItemStyle = {
   display: 'flex',
@@ -30,6 +30,7 @@ function KnowledgeBase() {
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [previewingDocument, setPreviewingDocument] = useState(null);
   const [editingDocument, setEditingDocument] = useState(null);
 
   // Загрузка документов
@@ -62,6 +63,11 @@ function KnowledgeBase() {
 
   const handleOpenDocument = (doc) => {
     setActiveMenuId(null);
+    setPreviewingDocument(doc);
+  };
+
+  const handleEditDocument = (doc) => {
+    setPreviewingDocument(null);
     setEditingDocument(doc);
   };
 
@@ -290,6 +296,15 @@ function KnowledgeBase() {
         <UploadModal onClose={() => setShowUploadModal(false)} onSubmit={handleUpload} />
       )}
 
+      {previewingDocument && (
+        <DocumentPreviewDrawer
+          document={previewingDocument}
+          onClose={() => setPreviewingDocument(null)}
+          onDownload={() => handleDownloadDocument(previewingDocument)}
+          onEdit={() => handleEditDocument(previewingDocument)}
+        />
+      )}
+
       {editingDocument && (
         <EditDocumentModal
           document={editingDocument}
@@ -297,6 +312,84 @@ function KnowledgeBase() {
           onSubmit={handleUpdateDocument}
         />
       )}
+    </div>
+  );
+}
+
+const documentTypeLabels = {
+  policy: 'Политика',
+  procedure: 'Процедура',
+  role_profile: 'Профиль должности',
+  template: 'Шаблон',
+  guide: 'Руководство'
+};
+
+const documentStatusLabels = {
+  draft: 'Черновик',
+  published: 'Опубликован',
+  archived: 'В архиве'
+};
+
+function DocumentPreviewDrawer({ document: documentItem, onClose, onDownload, onEdit }) {
+  return (
+    <div className="document-preview-backdrop" onClick={onClose}>
+      <aside
+        className="document-preview-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="document-preview-title"
+        onClick={event => event.stopPropagation()}
+      >
+        <header className="document-preview-header">
+          <div>
+            <span className={`badge badge-${documentItem.status === 'published' ? 'green' : documentItem.status === 'archived' ? 'gray' : 'yellow'}`}>
+              {documentStatusLabels[documentItem.status] || documentItem.status}
+            </span>
+            <h2 id="document-preview-title">{documentItem.title}</h2>
+          </div>
+          <button type="button" className="icon-button" aria-label="Закрыть просмотр" onClick={onClose}>
+            <X size={20} />
+          </button>
+        </header>
+
+        <div className="document-preview-actions">
+          <button type="button" className="primary-button" onClick={onEdit}>
+            <Pencil size={17} /> Редактировать
+          </button>
+          <button type="button" className="secondary-button" onClick={onDownload} disabled={!documentItem.file_name}>
+            <Download size={17} /> Скачать
+          </button>
+        </div>
+
+        <div className="document-preview-meta">
+          <div><span>Тип</span><strong>{documentTypeLabels[documentItem.doc_type] || documentItem.doc_type}</strong></div>
+          {documentItem.department && <div><span>Отдел</span><strong>{documentItem.department}</strong></div>}
+          {documentItem.role && <div><span>Должность</span><strong>{documentItem.role}</strong></div>}
+          <div><span>Добавлен</span><strong>{new Date(documentItem.created_at).toLocaleDateString()}</strong></div>
+        </div>
+
+        <div className="document-preview-body">
+          {documentItem.description && (
+            <section>
+              <h3>Краткое описание</h3>
+              <p>{documentItem.description}</p>
+            </section>
+          )}
+          <section>
+            <h3>Содержание</h3>
+            <div className="document-preview-content">
+              {documentItem.content_text || 'В документе нет извлечённого текста.'}
+            </div>
+          </section>
+          <section>
+            <h3>Исходный файл</h3>
+            <div className="document-preview-file">
+              <FileText size={20} />
+              <span>{documentItem.file_name || 'Файл отсутствует'}</span>
+            </div>
+          </section>
+        </div>
+      </aside>
     </div>
   );
 }
