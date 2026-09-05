@@ -128,6 +128,7 @@ def list_documents(
     department: Optional[str] = None,
     status: Optional[str] = None,
     archived: Optional[bool] = None,
+    deleted: bool = False,
     search: Optional[str] = None,
     limit: int = Query(20, le=100),
     offset: int = Query(0),
@@ -135,7 +136,7 @@ def list_documents(
 ):
     """Список документов с фильтрацией"""
     query = db.query(DocumentModel).filter(
-        DocumentModel.is_deleted == False,
+        DocumentModel.is_deleted == deleted,
         DocumentModel.file_path.isnot(None),
     )
     

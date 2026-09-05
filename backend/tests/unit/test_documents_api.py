@@ -42,3 +42,20 @@ def test_delete_document_keeps_source_file_for_recovery():
     assert document.is_deleted is True
     delete_file.assert_not_called()
     db.commit.assert_called_once()
+
+
+@pytest.mark.parametrize("deleted", [False, True])
+def test_list_documents_applies_deleted_scope(deleted):
+    query = MagicMock()
+    query.filter.return_value = query
+    query.offset.return_value = query
+    query.limit.return_value = query
+    query.all.return_value = []
+    db = MagicMock()
+    db.query.return_value = query
+
+    list_documents(deleted=deleted, db=db)
+
+    deleted_expression = query.filter.call_args_list[0].args[0]
+    assert deleted_expression.operator.__name__ == "eq"
+    assert deleted_expression.right.value is deleted

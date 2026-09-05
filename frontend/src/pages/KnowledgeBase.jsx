@@ -27,7 +27,9 @@ function KnowledgeBase() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [documentView, setDocumentView] = useState(
-    searchParams.get('view') === 'archive' ? 'archive' : 'active'
+    ['archive', 'deleted'].includes(searchParams.get('view'))
+      ? searchParams.get('view')
+      : 'active'
   );
   const [filters, setFilters] = useState({
     doc_type: searchParams.get('type') || '',
@@ -47,7 +49,10 @@ function KnowledgeBase() {
       if (filters.doc_type) params.append('doc_type', filters.doc_type);
       if (filters.department) params.append('department', filters.department);
       if (debouncedSearch) params.append('search', debouncedSearch);
-      params.append('archived', documentView === 'archive' ? 'true' : 'false');
+      params.append('deleted', documentView === 'deleted' ? 'true' : 'false');
+      if (documentView !== 'deleted') {
+        params.append('archived', documentView === 'archive' ? 'true' : 'false');
+      }
       
       const response = await documentsApi.getDocuments(params);
       setDocuments(response);
@@ -72,7 +77,7 @@ function KnowledgeBase() {
     if (debouncedSearch) params.set('q', debouncedSearch);
     if (filters.doc_type) params.set('type', filters.doc_type);
     if (filters.department) params.set('department', filters.department);
-    if (documentView === 'archive') params.set('view', 'archive');
+    if (documentView !== 'active') params.set('view', documentView);
     setSearchParams(params, { replace: true });
   }, [debouncedSearch, filters.doc_type, filters.department, documentView, setSearchParams]);
 
@@ -178,6 +183,15 @@ function KnowledgeBase() {
         >
           <Archive size={17} /> Архив
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={documentView === 'deleted'}
+          className={documentView === 'deleted' ? 'active' : ''}
+          onClick={() => setDocumentView('deleted')}
+        >
+          <Trash2 size={17} /> Удалённые
+        </button>
       </div>
 
       <section className="knowledge-toolbar" aria-label="Поиск и фильтры документов">
@@ -274,9 +288,9 @@ function KnowledgeBase() {
         <div className="empty-state">
           <FileText size={48} />
           <p>
-            {documentView === 'archive'
-              ? 'В архиве пока нет документов.'
-              : 'Документов нет. Добавьте первый документ.'}
+            {documentView === 'archive' && 'В архиве пока нет документов.'}
+            {documentView === 'deleted' && 'Удалённых документов нет.'}
+            {documentView === 'active' && 'Документов нет. Добавьте первый документ.'}
           </p>
         </div>
       ) : (
@@ -289,13 +303,17 @@ function KnowledgeBase() {
             >
               <div className="data-card-header" style={{ position: 'relative', paddingRight: '48px' }}>
                 <div className="data-card-title">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenDocument(doc)}
-                    style={{ border: 0, background: 'transparent', padding: 0, color: 'inherit', textAlign: 'left' }}
-                  >
+                  {documentView === 'deleted' ? (
                     <h3 style={{ margin: 0 }}>{doc.title}</h3>
-                  </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenDocument(doc)}
+                      style={{ border: 0, background: 'transparent', padding: 0, color: 'inherit', textAlign: 'left' }}
+                    >
+                      <h3 style={{ margin: 0 }}>{doc.title}</h3>
+                    </button>
+                  )}
                   {(doc.department || doc.role) && (
                     <div className="data-card-badges">
                       {doc.department && (
@@ -308,7 +326,7 @@ function KnowledgeBase() {
                   )}
                 </div>
 
-                <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
+                {documentView !== 'deleted' && <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
                   <button
                     type="button"
                     className="icon-button"
@@ -370,7 +388,7 @@ function KnowledgeBase() {
                       </button>
                     </div>
                   )}
-                </div>
+                </div>}
               </div>
               
               {doc.description && (
@@ -379,14 +397,18 @@ function KnowledgeBase() {
               
               <div className="data-card-footer">
                 <span className="text-muted">📅 {new Date(doc.created_at).toLocaleDateString()}</span>
-                <button
-                  type="button"
-                  className="document-file-link"
-                  onClick={() => handleOpenDocument(doc)}
-                  disabled={!doc.file_name}
-                >
-                  📄 {doc.file_name || 'Без файла'}
-                </button>
+                {documentView === 'deleted' ? (
+                  <span className="text-muted">📄 {doc.file_name || 'Без файла'}</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="document-file-link"
+                    onClick={() => handleOpenDocument(doc)}
+                    disabled={!doc.file_name}
+                  >
+                    📄 {doc.file_name || 'Без файла'}
+                  </button>
+                )}
               </div>
             </div>
           ))}

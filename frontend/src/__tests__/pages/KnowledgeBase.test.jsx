@@ -100,6 +100,21 @@ describe('KnowledgeBase document preview', () => {
     });
   });
 
+  it('запрашивает только удалённые документы в соответствующем разделе', async () => {
+    renderKnowledgeBase();
+    await screen.findByRole('heading', { name: documentItem.title });
+
+    fireEvent.click(screen.getByRole('tab', { name: /удалённые/i }));
+
+    await waitFor(() => {
+      const params = documentsApi.getDocuments.mock.calls.at(-1)[0];
+      expect(params.get('deleted')).toBe('true');
+      expect(params.has('archived')).toBe(false);
+    });
+    expect(screen.getByRole('tab', { name: /удалённые/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByRole('button', { name: `Действия с документом ${documentItem.title}` })).not.toBeInTheDocument();
+  });
+
   it('восстанавливает архивный документ как черновик', async () => {
     const archivedDocument = { ...documentItem, status: 'archived' };
     documentsApi.getDocuments.mockResolvedValue([archivedDocument]);
