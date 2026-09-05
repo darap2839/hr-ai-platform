@@ -112,10 +112,15 @@ function KnowledgeBase() {
   const handleArchiveDocument = async (doc) => {
     try {
       setActiveMenuId(null);
-      await documentsApi.updateDocument(doc.id, { status: 'archived' });
+      const nextStatus = doc.status === 'archived' ? 'published' : 'archived';
+      await documentsApi.updateDocument(doc.id, { status: nextStatus });
       await fetchDocuments();
     } catch (error) {
-      alert('Не удалось переместить документ в архив: ' + error.message);
+      alert(
+        doc.status === 'archived'
+          ? 'Не удалось вернуть документ из архива: ' + error.message
+          : 'Не удалось переместить документ в архив: ' + error.message
+      );
     }
   };
 
@@ -345,10 +350,9 @@ function KnowledgeBase() {
                         className="document-menu-item"
                         style={documentMenuItemStyle}
                         onClick={() => handleArchiveDocument(doc)}
-                        disabled={doc.status === 'archived'}
                       >
                         <Archive size={18} color="#7c3aed" />
-                        {doc.status === 'archived' ? 'Уже в архиве' : 'В архив'}
+                        {doc.status === 'archived' ? 'Вернуть из архива' : 'В архив'}
                       </button>
                       <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
                       <button
