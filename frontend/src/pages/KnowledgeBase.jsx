@@ -1,7 +1,8 @@
 // frontend/src/pages/KnowledgeBase.jsx
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2, Pencil } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2, Pencil, SlidersHorizontal } from 'lucide-react';
 
 const documentMenuItemStyle = {
   display: 'flex',
@@ -21,13 +22,15 @@ const documentMenuItemStyle = {
 };
 
 function KnowledgeBase() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    doc_type: '',
-    department: '',
-    search: ''
+    doc_type: searchParams.get('type') || '',
+    department: searchParams.get('department') || '',
+    search: searchParams.get('q') || ''
   });
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [previewingDocument, setPreviewingDocument] = useState(null);
@@ -40,7 +43,7 @@ function KnowledgeBase() {
       const params = new URLSearchParams();
       if (filters.doc_type) params.append('doc_type', filters.doc_type);
       if (filters.department) params.append('department', filters.department);
-      if (filters.search) params.append('search', filters.search);
+      if (debouncedSearch) params.append('search', debouncedSearch);
       
       const response = await documentsApi.getDocuments(params);
       setDocuments(response);
@@ -53,7 +56,25 @@ function KnowledgeBase() {
 
   useEffect(() => {
     fetchDocuments();
-  }, [filters]);
+  }, [filters.doc_type, filters.department, debouncedSearch]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setDebouncedSearch(filters.search.trim()), 350);
+    return () => window.clearTimeout(timeoutId);
+  }, [filters.search]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set('q', debouncedSearch);
+    if (filters.doc_type) params.set('type', filters.doc_type);
+    if (filters.department) params.set('department', filters.department);
+    setSearchParams(params, { replace: true });
+  }, [debouncedSearch, filters.doc_type, filters.department, setSearchParams]);
+
+  const resetFilters = () => {
+    setFilters({ doc_type: '', department: '', search: '' });
+    setDebouncedSearch('');
+  };
 
   const handleUpload = async (formData) => {
     const document = await documentsApi.uploadDocument(formData);
@@ -128,43 +149,92 @@ function KnowledgeBase() {
         </button>
       </div>
 
-      {/* Фильтры */}
-      <div className="search-bar">
-        <div className="filters-grid">
-          <div className="search-input-wrapper">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder="Поиск по документам..."
-              value={filters.search}
-              onChange={(e) => setFilters({...filters, search: e.target.value})}
-            />
-          </div>
-          
-          <select
-            value={filters.doc_type}
-            onChange={(e) => setFilters({...filters, doc_type: e.target.value})}
-          >
-            <option value="">Все типы</option>
-            <option value="policy">Политика</option>
-            <option value="procedure">Процедура</option>
-            <option value="role_profile">Профиль должности</option>
-            <option value="template">Шаблон</option>
-            <option value="guide">Руководство</option>
-          </select>
-          
-          <select
-            value={filters.department}
-            onChange={(e) => setFilters({...filters, department: e.target.value})}
-          >
-            <option value="">Все отделы</option>
-            <option value="HR">HR</option>
-            <option value="IT">IT</option>
-            <option value="Finance">Финансы</option>
-            <option value="Legal">Юридический</option>
-          </select>
+      <section className="knowledge-toolbar" aria-label="Поиск и фильтры документов">
+        <div className="knowledge-search-field">
+          <Search size={20} />
+          <input
+            type="search"
+            aria-label="Поиск по документам"
+            placeholder="Поиск по названию и содержимому..."
+            value={filters.search}
+            onChange={(event) => setFilters({ ...filters, search: event.target.value })}
+          />
+          {filters.search && (
+            <button
+              type="button"
+              className="knowledge-search-clear"
+              aria-label="Очистить поиск"
+              onClick={() => setFilters({ ...filters, search: '' })}
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
-      </div>
+
+        <div className="knowledge-filter-row">
+          <div className="knowledge-filter-heading">
+            <SlidersHorizontal size={17} />
+            <span>Фильтры</span>
+          </div>
+
+          <label className="knowledge-filter-control">
+            <span>Тип документа</span>
+            <select
+              aria-label="Тип документа"
+              value={filters.doc_type}
+              onChange={(event) => setFilters({ ...filters, doc_type: event.target.value })}
+            >
+              <option value="">Все типы</option>
+              <option value="policy">Политика</option>
+              <option value="procedure">Процедура</option>
+              <option value="role_profile">Профиль должности</option>
+              <option value="template">Шаблон</option>
+              <option value="guide">Руководство</option>
+            </select>
+          </label>
+
+          <label className="knowledge-filter-control">
+            <span>Отдел</span>
+            <select
+              aria-label="Отдел"
+              value={filters.department}
+              onChange={(event) => setFilters({ ...filters, department: event.target.value })}
+            >
+              <option value="">Все отделы</option>
+              <option value="HR">HR</option>
+              <option value="IT">IT</option>
+              <option value="Finance">Финансы</option>
+              <option value="Legal">Юридический</option>
+            </select>
+          </label>
+
+          {(filters.search || filters.doc_type || filters.department) && (
+            <button type="button" className="knowledge-reset-button" onClick={resetFilters}>
+              Сбросить
+            </button>
+          )}
+        </div>
+
+        {(debouncedSearch || filters.doc_type || filters.department) && (
+          <div className="knowledge-filter-chips" aria-label="Активные фильтры">
+            {debouncedSearch && (
+              <button type="button" onClick={() => setFilters({ ...filters, search: '' })}>
+                Поиск: {debouncedSearch} <X size={14} />
+              </button>
+            )}
+            {filters.doc_type && (
+              <button type="button" onClick={() => setFilters({ ...filters, doc_type: '' })}>
+                {documentTypeLabels[filters.doc_type]} <X size={14} />
+              </button>
+            )}
+            {filters.department && (
+              <button type="button" onClick={() => setFilters({ ...filters, department: '' })}>
+                {filters.department} <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
+      </section>
 
       {/* Список документов */}
       {loading ? (
