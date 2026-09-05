@@ -54,6 +54,17 @@ describe('KnowledgeBase document preview', () => {
     expect(screen.getByText('Страница документа')).toBeInTheDocument();
   });
 
+  it('не показывает внутренние тип и статус на карточке', async () => {
+    const internalValuesDocument = { ...documentItem, doc_type: 'guide', status: 'draft' };
+    documentsApi.getDocuments.mockResolvedValue([internalValuesDocument]);
+    renderKnowledgeBase();
+
+    await screen.findByRole('heading', { name: internalValuesDocument.title });
+    expect(screen.queryByText('guide')).not.toBeInTheDocument();
+    expect(screen.queryByText('draft')).not.toBeInTheDocument();
+    expect(screen.getAllByText(internalValuesDocument.department)).toHaveLength(2);
+  });
+
   it('восстанавливает фильтры из URL', async () => {
     renderKnowledgeBase('/knowledge-base?type=procedure&department=HR');
 

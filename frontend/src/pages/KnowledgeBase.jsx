@@ -296,21 +296,16 @@ function KnowledgeBase() {
                   >
                     <h3 style={{ margin: 0 }}>{doc.title}</h3>
                   </button>
-                  <div className="data-card-badges">
-                    <span className={`badge badge-${
-                      doc.doc_type === 'role_profile' ? 'purple' :
-                      doc.doc_type === 'policy' ? 'blue' :
-                      'gray'
-                    }`}>
-                      {doc.doc_type}
-                    </span>
-                    {doc.department && (
-                      <span className="badge badge-gray">{doc.department}</span>
-                    )}
-                    {doc.role && (
-                      <span className="badge badge-indigo">{doc.role}</span>
-                    )}
-                  </div>
+                  {(doc.department || doc.role) && (
+                    <div className="data-card-badges">
+                      {doc.department && (
+                        <span className="badge badge-gray">{doc.department}</span>
+                      )}
+                      {doc.role && (
+                        <span className="badge badge-indigo">{doc.role}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
@@ -392,9 +387,6 @@ function KnowledgeBase() {
                 >
                   📄 {doc.file_name || 'Без файла'}
                 </button>
-                <span className={`badge badge-${doc.status === 'published' ? 'green' : doc.status === 'archived' ? 'gray' : 'yellow'}`}>
-                  {doc.status}
-                </span>
               </div>
             </div>
           ))}
