@@ -62,6 +62,30 @@ describe('KnowledgeBase document preview', () => {
     const params = documentsApi.getDocuments.mock.calls.at(-1)[0];
     expect(params.get('doc_type')).toBe('procedure');
     expect(params.get('department')).toBe('HR');
+    expect(params.get('archived')).toBe('false');
+  });
+
+  it('переключается на архив и сохраняет раздел в URL', async () => {
+    renderKnowledgeBase();
+    await screen.findByRole('heading', { name: documentItem.title });
+
+    fireEvent.click(screen.getByRole('tab', { name: /архив/i }));
+
+    await waitFor(() => {
+      const params = documentsApi.getDocuments.mock.calls.at(-1)[0];
+      expect(params.get('archived')).toBe('true');
+    });
+    expect(screen.getByRole('tab', { name: /архив/i })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('открывает архивный раздел из URL', async () => {
+    renderKnowledgeBase('/knowledge-base?view=archive');
+
+    expect(screen.getByRole('tab', { name: /архив/i })).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => {
+      const params = documentsApi.getDocuments.mock.calls.at(-1)[0];
+      expect(params.get('archived')).toBe('true');
+    });
   });
 
   it('отправляет поиск только после задержки', async () => {

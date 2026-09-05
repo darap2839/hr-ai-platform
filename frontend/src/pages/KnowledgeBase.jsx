@@ -26,6 +26,9 @@ function KnowledgeBase() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [documentView, setDocumentView] = useState(
+    searchParams.get('view') === 'archive' ? 'archive' : 'active'
+  );
   const [filters, setFilters] = useState({
     doc_type: searchParams.get('type') || '',
     department: searchParams.get('department') || '',
@@ -44,6 +47,7 @@ function KnowledgeBase() {
       if (filters.doc_type) params.append('doc_type', filters.doc_type);
       if (filters.department) params.append('department', filters.department);
       if (debouncedSearch) params.append('search', debouncedSearch);
+      params.append('archived', documentView === 'archive' ? 'true' : 'false');
       
       const response = await documentsApi.getDocuments(params);
       setDocuments(response);
@@ -56,7 +60,7 @@ function KnowledgeBase() {
 
   useEffect(() => {
     fetchDocuments();
-  }, [filters.doc_type, filters.department, debouncedSearch]);
+  }, [filters.doc_type, filters.department, debouncedSearch, documentView]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setDebouncedSearch(filters.search.trim()), 350);
@@ -68,8 +72,9 @@ function KnowledgeBase() {
     if (debouncedSearch) params.set('q', debouncedSearch);
     if (filters.doc_type) params.set('type', filters.doc_type);
     if (filters.department) params.set('department', filters.department);
+    if (documentView === 'archive') params.set('view', 'archive');
     setSearchParams(params, { replace: true });
-  }, [debouncedSearch, filters.doc_type, filters.department, setSearchParams]);
+  }, [debouncedSearch, filters.doc_type, filters.department, documentView, setSearchParams]);
 
   const resetFilters = () => {
     setFilters({ doc_type: '', department: '', search: '' });
@@ -141,6 +146,27 @@ function KnowledgeBase() {
         </div>
         <button className="primary-button" onClick={() => setShowUploadModal(true)}>
           <Plus size={18} /> Добавить документ
+        </button>
+      </div>
+
+      <div className="knowledge-view-switcher" role="tablist" aria-label="Раздел документов">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={documentView === 'active'}
+          className={documentView === 'active' ? 'active' : ''}
+          onClick={() => setDocumentView('active')}
+        >
+          Действующие
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={documentView === 'archive'}
+          className={documentView === 'archive' ? 'active' : ''}
+          onClick={() => setDocumentView('archive')}
+        >
+          <Archive size={17} /> Архив
         </button>
       </div>
 
@@ -237,7 +263,11 @@ function KnowledgeBase() {
       ) : documents.length === 0 ? (
         <div className="empty-state">
           <FileText size={48} />
-          <p>Документов нет. Загрузите первый документ или создайте профиль должности.</p>
+          <p>
+            {documentView === 'archive'
+              ? 'В архиве пока нет документов.'
+              : 'Документов нет. Добавьте первый документ.'}
+          </p>
         </div>
       ) : (
         <div className="data-list">

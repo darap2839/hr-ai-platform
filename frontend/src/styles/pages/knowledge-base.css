@@ -1,3 +1,39 @@
+.knowledge-view-switcher {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #dfe6ef;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 4px;
+}
+
+.knowledge-view-switcher button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  padding: 0 16px;
+  color: #64748b;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.knowledge-view-switcher button:hover {
+  color: #1e293b;
+}
+
+.knowledge-view-switcher button.active {
+  background: #fff;
+  color: #0b73ff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
 .knowledge-toolbar {
   display: grid;
   gap: 14px;

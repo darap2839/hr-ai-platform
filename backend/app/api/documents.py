@@ -127,6 +127,7 @@ def list_documents(
     doc_type: Optional[str] = None,
     department: Optional[str] = None,
     status: Optional[str] = None,
+    archived: Optional[bool] = None,
     search: Optional[str] = None,
     limit: int = Query(20, le=100),
     offset: int = Query(0),
@@ -147,11 +148,13 @@ def list_documents(
     if department:
         query = query.filter(DocumentModel.department == department)
     
-    if status:
-        try:
-            query = query.filter(DocumentModel.status == DocumentStatus(status))
-        except ValueError:
-            pass
+    if archived is not None:
+        if archived:
+            query = query.filter(DocumentModel.status == "archived")
+        else:
+            query = query.filter(DocumentModel.status != "archived")
+    elif status:
+        query = query.filter(DocumentModel.status == status)
     
     if search:
         search_term = f"%{search}%"
