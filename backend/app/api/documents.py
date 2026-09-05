@@ -257,14 +257,14 @@ def publish_document(doc_id: int, db: Session = Depends(get_db)):
 @router.delete("/{doc_id}")
 def delete_document(doc_id: int, db: Session = Depends(get_db)):
     """Удалить документ (мягкое удаление)"""
-    doc = db.query(DocumentModel).filter(DocumentModel.id == doc_id).first()
+    doc = db.query(DocumentModel).filter(
+        DocumentModel.id == doc_id,
+        DocumentModel.is_deleted == False,
+    ).first()
     
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    if doc.file_path:
-        minio_service.delete_file(doc.file_path)
-
     doc.is_deleted = True
     db.commit()
     
