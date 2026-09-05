@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import KnowledgeBase from '../../pages/KnowledgeBase';
 import { documentsApi } from '../../api/client';
 
@@ -37,25 +37,20 @@ describe('KnowledgeBase document preview', () => {
     documentsApi.getDocuments.mockResolvedValue([documentItem]);
   });
 
-  it('открывает документ в режиме чтения', async () => {
-    renderKnowledgeBase();
+  it('открывает документ на отдельной странице', async () => {
+    render(
+      <MemoryRouter initialEntries={['/knowledge-base']}>
+        <Routes>
+          <Route path="/knowledge-base" element={<KnowledgeBase />} />
+          <Route path="/knowledge-base/documents/:id" element={<div>Страница документа</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
     const title = await screen.findByRole('heading', { name: documentItem.title });
 
     fireEvent.click(title);
 
-    expect(screen.getByRole('dialog', { name: documentItem.title })).toBeInTheDocument();
-    expect(screen.getByText(documentItem.content_text)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /редактировать/i })).toBeInTheDocument();
-    expect(screen.queryByDisplayValue(documentItem.title)).not.toBeInTheDocument();
-  });
-
-  it('переходит к редактированию только по отдельной кнопке', async () => {
-    renderKnowledgeBase();
-    fireEvent.click(await screen.findByRole('heading', { name: documentItem.title }));
-    fireEvent.click(screen.getByRole('button', { name: /редактировать/i }));
-
-    await waitFor(() => expect(screen.getByDisplayValue(documentItem.title)).toBeInTheDocument());
-    expect(screen.queryByRole('dialog', { name: documentItem.title })).not.toBeInTheDocument();
+    expect(screen.getByText('Страница документа')).toBeInTheDocument();
   });
 
   it('восстанавливает фильтры из URL', async () => {
