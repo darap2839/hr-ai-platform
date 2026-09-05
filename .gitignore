@@ -7,7 +7,6 @@
 # Ignore Gradle build output directory
 build
 /.idea/
-package-lock.json
 node_modules
 
 # Python
@@ -25,4 +24,3 @@ frontend/dist/
 .coverage
 htmlcov/
 .coverage*
-
