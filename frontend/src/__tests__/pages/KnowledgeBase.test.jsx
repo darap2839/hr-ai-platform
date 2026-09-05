@@ -35,6 +35,7 @@ describe('KnowledgeBase document preview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     documentsApi.getDocuments.mockResolvedValue([documentItem]);
+    documentsApi.updateDocument.mockResolvedValue({});
   });
 
   it('открывает документ на отдельной странице', async () => {
@@ -85,6 +86,21 @@ describe('KnowledgeBase document preview', () => {
     await waitFor(() => {
       const params = documentsApi.getDocuments.mock.calls.at(-1)[0];
       expect(params.get('archived')).toBe('true');
+    });
+  });
+
+  it('восстанавливает архивный документ как черновик', async () => {
+    const archivedDocument = { ...documentItem, status: 'archived' };
+    documentsApi.getDocuments.mockResolvedValue([archivedDocument]);
+    renderKnowledgeBase('/knowledge-base?view=archive');
+    await screen.findByRole('heading', { name: archivedDocument.title });
+
+    fireEvent.click(screen.getByRole('button', { name: `Действия с документом ${archivedDocument.title}` }));
+    fireEvent.click(screen.getByRole('button', { name: /восстановить/i }));
+
+    await waitFor(() => {
+      expect(documentsApi.updateDocument).toHaveBeenCalledWith(archivedDocument.id, { status: 'draft' });
+      expect(documentsApi.getDocuments).toHaveBeenCalledTimes(2);
     });
   });
 

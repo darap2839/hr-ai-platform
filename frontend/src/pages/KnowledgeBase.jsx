@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, Trash2, SlidersHorizontal } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, ArchiveRestore, Trash2, SlidersHorizontal } from 'lucide-react';
 
 const documentMenuItemStyle = {
   display: 'flex',
@@ -112,15 +112,20 @@ function KnowledgeBase() {
   const handleArchiveDocument = async (doc) => {
     try {
       setActiveMenuId(null);
-      const nextStatus = doc.status === 'archived' ? 'published' : 'archived';
-      await documentsApi.updateDocument(doc.id, { status: nextStatus });
+      await documentsApi.updateDocument(doc.id, { status: 'archived' });
       await fetchDocuments();
     } catch (error) {
-      alert(
-        doc.status === 'archived'
-          ? 'Не удалось вернуть документ из архива: ' + error.message
-          : 'Не удалось переместить документ в архив: ' + error.message
-      );
+      alert('Не удалось переместить документ в архив: ' + error.message);
+    }
+  };
+
+  const handleRestoreDocument = async (doc) => {
+    try {
+      setActiveMenuId(null);
+      await documentsApi.updateDocument(doc.id, { status: 'draft' });
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось восстановить документ из архива: ' + error.message);
     }
   };
 
@@ -349,10 +354,16 @@ function KnowledgeBase() {
                       <button
                         className="document-menu-item"
                         style={documentMenuItemStyle}
-                        onClick={() => handleArchiveDocument(doc)}
+                        onClick={() => (
+                          doc.status === 'archived'
+                            ? handleRestoreDocument(doc)
+                            : handleArchiveDocument(doc)
+                        )}
                       >
-                        <Archive size={18} color="#7c3aed" />
-                        {doc.status === 'archived' ? 'Вернуть из архива' : 'В архив'}
+                        {doc.status === 'archived'
+                          ? <ArchiveRestore size={18} color="#166534" />
+                          : <Archive size={18} color="#7c3aed" />}
+                        {doc.status === 'archived' ? 'Восстановить' : 'В архив'}
                       </button>
                       <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
                       <button
