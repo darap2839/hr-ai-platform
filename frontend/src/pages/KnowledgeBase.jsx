@@ -29,7 +29,6 @@ function KnowledgeBase() {
     search: ''
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [editingDocument, setEditingDocument] = useState(null);
 
@@ -56,12 +55,6 @@ function KnowledgeBase() {
   }, [filters]);
 
   const handleUpload = async (formData) => {
-    const document = await documentsApi.uploadDocument(formData);
-    await fetchDocuments();
-    return document;
-  };
-
-  const handleCreatePage = async (formData) => {
     const document = await documentsApi.uploadDocument(formData);
     await fetchDocuments();
     return document;
@@ -119,19 +112,14 @@ function KnowledgeBase() {
 
   return (
     <div className="page-container" onClick={() => setActiveMenuId(null)}>
-      <div className="page-header knowledge-header">
+      <div className="page-header">
         <div>
           <h1><FileText size={24} /> База знаний</h1>
-          <p>Внутренние документы, инструкции и профили должностей</p>
+          <p>Локальные документы, профили должностей и инструкции</p>
         </div>
-        <div className="knowledge-header-actions">
-          <button className="secondary-button" onClick={() => setShowCreateModal(true)}>
-            <Plus size={18} /> Создать страницу
-          </button>
-          <button className="primary-button" onClick={() => setShowUploadModal(true)}>
-            <Upload size={18} /> Загрузить файл
-          </button>
-        </div>
+        <button className="primary-button" onClick={() => setShowUploadModal(true)}>
+          <Plus size={18} /> Добавить документ
+        </button>
       </div>
 
       {/* Фильтры */}
@@ -302,13 +290,6 @@ function KnowledgeBase() {
         <UploadModal onClose={() => setShowUploadModal(false)} onSubmit={handleUpload} />
       )}
 
-      {showCreateModal && (
-        <CreatePageModal
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreatePage}
-        />
-      )}
-
       {editingDocument && (
         <EditDocumentModal
           document={editingDocument}
@@ -316,125 +297,6 @@ function KnowledgeBase() {
           onSubmit={handleUpdateDocument}
         />
       )}
-    </div>
-  );
-}
-
-function CreatePageModal({ onClose, onSubmit }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    doc_type: 'guide',
-    department: '',
-    content_text: ''
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setSaving(true);
-    setError('');
-
-    try {
-      const payload = new FormData();
-      Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
-      await onSubmit(payload);
-      onClose();
-    } catch (submitError) {
-      setError(submitError.message || 'Не удалось создать страницу');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content create-page-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-page-title"
-        onClick={event => event.stopPropagation()}
-      >
-        <div className="modal-header">
-          <div>
-            <h2 id="create-page-title"><FileText size={22} /> Создать страницу</h2>
-            <p>Новая страница сохранится как черновик</p>
-          </div>
-          <button className="icon-button" type="button" aria-label="Закрыть" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <form className="create-page-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Название *</span>
-            <input
-              autoFocus
-              required
-              maxLength={200}
-              placeholder="Например: Регламент проведения интервью"
-              value={formData.title}
-              onChange={event => setFormData({ ...formData, title: event.target.value })}
-            />
-          </label>
-
-          <label>
-            <span>Содержание *</span>
-            <textarea
-              required
-              rows={10}
-              placeholder="Введите текст внутренней страницы..."
-              value={formData.content_text}
-              onChange={event => setFormData({ ...formData, content_text: event.target.value })}
-            />
-          </label>
-
-          <div className="create-page-fields">
-            <label>
-              <span>Тип документа</span>
-              <select
-                value={formData.doc_type}
-                onChange={event => setFormData({ ...formData, doc_type: event.target.value })}
-              >
-                <option value="guide">Руководство</option>
-                <option value="policy">Политика</option>
-                <option value="procedure">Процедура</option>
-                <option value="role_profile">Профиль должности</option>
-                <option value="template">Шаблон</option>
-              </select>
-            </label>
-            <label>
-              <span>Отдел</span>
-              <input
-                placeholder="Например: HR"
-                value={formData.department}
-                onChange={event => setFormData({ ...formData, department: event.target.value })}
-              />
-            </label>
-          </div>
-
-          <label>
-            <span>Краткое описание</span>
-            <textarea
-              rows={3}
-              placeholder="О чём эта страница"
-              value={formData.description}
-              onChange={event => setFormData({ ...formData, description: event.target.value })}
-            />
-          </label>
-
-          {error && <div className="login-error" role="alert">{error}</div>}
-
-          <div className="create-page-footer">
-            <button type="button" className="secondary-button" onClick={onClose}>Отмена</button>
-            <button type="submit" className="primary-button" disabled={saving}>
-              {saving ? 'Сохранение...' : 'Сохранить черновик'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
