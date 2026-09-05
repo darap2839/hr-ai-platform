@@ -9,7 +9,8 @@ vi.mock('../../api/client', () => ({
     getDocuments: vi.fn(),
     getDocumentFile: vi.fn(),
     updateDocument: vi.fn(),
-    deleteDocument: vi.fn()
+    deleteDocument: vi.fn(),
+    restoreDocument: vi.fn()
   }
 }));
 
@@ -36,6 +37,7 @@ describe('KnowledgeBase document preview', () => {
     vi.clearAllMocks();
     documentsApi.getDocuments.mockResolvedValue([documentItem]);
     documentsApi.updateDocument.mockResolvedValue({});
+    documentsApi.restoreDocument.mockResolvedValue({});
   });
 
   it('открывает документ на отдельной странице', async () => {
@@ -112,7 +114,22 @@ describe('KnowledgeBase document preview', () => {
       expect(params.has('archived')).toBe(false);
     });
     expect(screen.getByRole('tab', { name: /удалённые/i })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryByRole('button', { name: `Действия с документом ${documentItem.title}` })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: `Действия с документом ${documentItem.title}` })).toBeInTheDocument();
+  });
+
+  it('восстанавливает документ из удалённых', async () => {
+    const deletedDocument = { ...documentItem, is_deleted: true };
+    documentsApi.getDocuments.mockResolvedValue([deletedDocument]);
+    renderKnowledgeBase('/knowledge-base?view=deleted');
+    await screen.findByRole('heading', { name: deletedDocument.title });
+
+    fireEvent.click(screen.getByRole('button', { name: `Действия с документом ${deletedDocument.title}` }));
+    fireEvent.click(screen.getByRole('button', { name: /восстановить/i }));
+
+    await waitFor(() => {
+      expect(documentsApi.restoreDocument).toHaveBeenCalledWith(deletedDocument.id);
+      expect(documentsApi.getDocuments).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('восстанавливает архивный документ как черновик', async () => {

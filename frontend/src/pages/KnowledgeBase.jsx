@@ -146,6 +146,16 @@ function KnowledgeBase() {
     }
   };
 
+  const handleRestoreDeletedDocument = async (doc) => {
+    try {
+      setActiveMenuId(null);
+      await documentsApi.restoreDocument(doc.id);
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось восстановить удалённый документ: ' + error.message);
+    }
+  };
+
   const handleUpdateDocument = async (id, payload) => {
     await documentsApi.updateDocument(id, payload);
     setEditingDocument(null);
@@ -326,7 +336,7 @@ function KnowledgeBase() {
                   )}
                 </div>
 
-                {documentView !== 'deleted' && <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
+                <div style={{ position: 'absolute', top: '-4px', right: 0 }}>
                   <button
                     type="button"
                     className="icon-button"
@@ -350,45 +360,57 @@ function KnowledgeBase() {
                         boxShadow: '0 18px 45px rgba(15, 23, 42, 0.16)'
                       }}
                     >
-                      <button
-                        className="document-menu-item"
-                        style={documentMenuItemStyle}
-                        onClick={() => handleOpenDocument(doc)}
-                      >
-                        <ExternalLink size={18} color="#0b73ff" /> Открыть
-                      </button>
-                      <button
-                        className="document-menu-item"
-                        style={documentMenuItemStyle}
-                        onClick={() => handleDownloadDocument(doc)}
-                      >
-                        <Download size={18} color="#0b73ff" /> Скачать
-                      </button>
-                      <button
-                        className="document-menu-item"
-                        style={documentMenuItemStyle}
-                        onClick={() => (
-                          doc.status === 'archived'
-                            ? handleRestoreDocument(doc)
-                            : handleArchiveDocument(doc)
-                        )}
-                      >
-                        {doc.status === 'archived'
-                          ? <ArchiveRestore size={18} color="#166534" />
-                          : <Archive size={18} color="#7c3aed" />}
-                        {doc.status === 'archived' ? 'Восстановить' : 'В архив'}
-                      </button>
-                      <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
-                      <button
-                        className="document-menu-item document-menu-item-danger"
-                        style={{ ...documentMenuItemStyle, color: '#dc2626' }}
-                        onClick={() => handleDeleteDocument(doc)}
-                      >
-                        <Trash2 size={18} /> Удалить
-                      </button>
+                      {documentView === 'deleted' ? (
+                        <button
+                          className="document-menu-item"
+                          style={documentMenuItemStyle}
+                          onClick={() => handleRestoreDeletedDocument(doc)}
+                        >
+                          <ArchiveRestore size={18} color="#166534" /> Восстановить
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            className="document-menu-item"
+                            style={documentMenuItemStyle}
+                            onClick={() => handleOpenDocument(doc)}
+                          >
+                            <ExternalLink size={18} color="#0b73ff" /> Открыть
+                          </button>
+                          <button
+                            className="document-menu-item"
+                            style={documentMenuItemStyle}
+                            onClick={() => handleDownloadDocument(doc)}
+                          >
+                            <Download size={18} color="#0b73ff" /> Скачать
+                          </button>
+                          <button
+                            className="document-menu-item"
+                            style={documentMenuItemStyle}
+                            onClick={() => (
+                              doc.status === 'archived'
+                                ? handleRestoreDocument(doc)
+                                : handleArchiveDocument(doc)
+                            )}
+                          >
+                            {doc.status === 'archived'
+                              ? <ArchiveRestore size={18} color="#166534" />
+                              : <Archive size={18} color="#7c3aed" />}
+                            {doc.status === 'archived' ? 'Восстановить' : 'В архив'}
+                          </button>
+                          <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
+                          <button
+                            className="document-menu-item document-menu-item-danger"
+                            style={{ ...documentMenuItemStyle, color: '#dc2626' }}
+                            onClick={() => handleDeleteDocument(doc)}
+                          >
+                            <Trash2 size={18} /> Удалить
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
-                </div>}
+                </div>
               </div>
               
               {doc.description && (

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.api.documents import delete_document, list_documents
+from app.api.documents import delete_document, list_documents, restore_document
 
 
 @pytest.mark.parametrize(
@@ -59,3 +59,26 @@ def test_list_documents_applies_deleted_scope(deleted):
     deleted_expression = query.filter.call_args_list[0].args[0]
     assert deleted_expression.operator.__name__ == "eq"
     assert deleted_expression.right.value is deleted
+
+
+def test_restore_document_preserves_previous_status():
+    document = MagicMock(
+        id=7,
+        file_path="documents/source.pdf",
+        is_deleted=True,
+        status="archived",
+    )
+    query = MagicMock()
+    query.filter.return_value = query
+    query.first.return_value = document
+    db = MagicMock()
+    db.query.return_value = query
+
+    with patch("app.api.documents.minio_service.file_exists", return_value=True):
+        result = restore_document(doc_id=document.id, db=db)
+
+    assert result is document
+    assert document.is_deleted is False
+    assert document.status == "archived"
+    db.commit.assert_called_once()
+    db.refresh.assert_called_once_with(document)

@@ -270,3 +270,22 @@ def delete_document(doc_id: int, db: Session = Depends(get_db)):
     db.commit()
     
     return {"status": "deleted", "id": doc_id}
+
+
+@router.post("/{doc_id}/restore", response_model=DocumentResponse)
+def restore_document(doc_id: int, db: Session = Depends(get_db)):
+    """Восстановить мягко удалённый документ вместе с исходным статусом."""
+    doc = db.query(DocumentModel).filter(
+        DocumentModel.id == doc_id,
+        DocumentModel.is_deleted == True,
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Deleted document not found")
+    if not doc.file_path or not minio_service.file_exists(doc.file_path):
+        raise HTTPException(status_code=409, detail="Исходный файл документа недоступен")
+
+    doc.is_deleted = False
+    db.commit()
+    db.refresh(doc)
+    return doc

@@ -235,6 +235,8 @@ export const documentsApi = {
   }),
 
   deleteDocument: (id) => apiRequest(`/api/documents/${id}`, { method: 'DELETE' }),
+
+  restoreDocument: (id) => apiRequest(`/api/documents/${id}/restore`, { method: 'POST' }),
 };
 
 // API для уведомлений
