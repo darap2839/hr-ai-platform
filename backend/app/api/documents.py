@@ -19,7 +19,11 @@ from app.schemas.document import (
 )
 from app.services.minio_service import minio_service
 from app.services.text_extraction_service import text_extraction_service
-from app.services.document_version_service import create_document_snapshot, document_has_changes
+from app.services.document_version_service import (
+    VERSIONED_FIELDS,
+    create_document_snapshot,
+    document_has_changes,
+)
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -283,6 +287,44 @@ def get_document_version(
     if not version:
         raise HTTPException(status_code=404, detail="Document version not found")
     return version
+
+
+@router.post(
+    "/{doc_id}/versions/{version_number}/restore",
+    response_model=DocumentResponse,
+)
+def restore_document_version(
+    doc_id: int,
+    version_number: int,
+    db: Session = Depends(get_db),
+):
+    """Восстановить выбранную версию, сохранив текущую редакцию в истории."""
+    document = db.query(DocumentModel).filter(
+        DocumentModel.id == doc_id,
+        DocumentModel.is_deleted == False,
+    ).with_for_update().first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    version = db.query(DocumentVersionModel).filter(
+        DocumentVersionModel.document_id == doc_id,
+        DocumentVersionModel.version_number == version_number,
+    ).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Document version not found")
+
+    restored_values = {
+        field: getattr(version, field)
+        for field in VERSIONED_FIELDS
+    }
+    if document_has_changes(document, restored_values):
+        create_document_snapshot(db, document, changes=restored_values)
+        for field, value in restored_values.items():
+            setattr(document, field, value)
+
+    db.commit()
+    db.refresh(document)
+    return document
 
 
 @router.get("/{doc_id}", response_model=DocumentResponse)

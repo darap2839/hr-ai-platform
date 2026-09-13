@@ -8,6 +8,7 @@ from app.api.documents import (
     list_document_versions,
     list_documents,
     restore_document,
+    restore_document_version,
     update_document,
 )
 from app.schemas.document import DocumentUpdate
@@ -160,3 +161,49 @@ def test_get_document_version_returns_requested_snapshot():
     )
 
     assert result is version
+
+
+def test_restore_document_version_snapshots_current_state_before_restore():
+    document = MagicMock(id=7, title="Текущее название", is_deleted=False)
+    version = MagicMock(document_id=7, version_number=2, title="Старое название")
+    restored_values = {
+        "title": "Старое название",
+        "description": "Старое описание",
+        "doc_type": "procedure",
+        "department": "HR",
+        "role": None,
+        "tags": "",
+        "access_level": "public",
+        "content_text": "Старый текст",
+        "status": "draft",
+    }
+    for field, value in restored_values.items():
+        setattr(version, field, value)
+
+    document_query = MagicMock()
+    document_query.filter.return_value = document_query
+    document_query.with_for_update.return_value = document_query
+    document_query.first.return_value = document
+    version_query = MagicMock()
+    version_query.filter.return_value = version_query
+    version_query.first.return_value = version
+    db = MagicMock()
+    db.query.side_effect = [document_query, version_query]
+
+    with (
+        patch("app.api.documents.document_has_changes", return_value=True),
+        patch("app.api.documents.create_document_snapshot") as create_snapshot,
+    ):
+        result = restore_document_version(
+            doc_id=document.id,
+            version_number=version.version_number,
+            db=db,
+        )
+
+    assert result is document
+    create_snapshot.assert_called_once_with(db, document, changes=restored_values)
+    document_query.with_for_update.assert_called_once()
+    for field, value in restored_values.items():
+        assert getattr(document, field) == value
+    db.commit.assert_called_once()
+    db.refresh.assert_called_once_with(document)
