@@ -28,10 +28,8 @@ const childUnitTypes = {
 
 const emptyForm = {
   name: '',
-  code: '',
   unit_type: 'department',
   parent_id: '',
-  sort_order: 0,
   is_active: true
 };
 
@@ -63,7 +61,6 @@ function OrganizationNode({ unit, onAddChild, onEdit, onDeactivate }) {
           <strong>{unit.name}</strong>
           <div>
             <span>{unitTypeLabels[unit.unit_type] || unit.unit_type}</span>
-            {unit.code && <span>{unit.code}</span>}
             {!unit.is_active && <span>Отключено</span>}
           </div>
         </div>
@@ -140,10 +137,8 @@ export default function OrganizationStructure() {
     setEditingUnit(unit);
     setFormData({
       name: unit.name,
-      code: unit.code || '',
       unit_type: unit.unit_type,
       parent_id: unit.parent_id || '',
-      sort_order: unit.sort_order || 0,
       is_active: unit.is_active
     });
     setModalOpen(true);
@@ -163,9 +158,7 @@ export default function OrganizationStructure() {
     const payload = {
       ...formData,
       name: formData.name.trim(),
-      code: formData.code.trim() || null,
-      parent_id: formData.parent_id ? Number(formData.parent_id) : null,
-      sort_order: Number(formData.sort_order) || 0
+      parent_id: formData.parent_id ? Number(formData.parent_id) : null
     };
     if (!editingUnit) delete payload.is_active;
 
@@ -259,17 +252,11 @@ export default function OrganizationStructure() {
                 <label htmlFor="organization-name">Название *</label>
                 <input id="organization-name" required value={formData.name} onChange={event => setFormData({ ...formData, name: event.target.value })} />
               </div>
-              <div className="organization-form-row">
-                <div className="form-group">
-                  <label htmlFor="organization-type">Тип</label>
-                  <select id="organization-type" value={formData.unit_type} onChange={event => setFormData({ ...formData, unit_type: event.target.value })}>
-                    {Object.entries(unitTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="organization-code">Код</label>
-                  <input id="organization-code" value={formData.code} onChange={event => setFormData({ ...formData, code: event.target.value })} />
-                </div>
+              <div className="form-group">
+                <label htmlFor="organization-type">Тип</label>
+                <select id="organization-type" value={formData.unit_type} onChange={event => setFormData({ ...formData, unit_type: event.target.value })}>
+                  {Object.entries(unitTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
               </div>
               <div className="form-group">
                 <label htmlFor="organization-parent">Родительское подразделение</label>
@@ -279,10 +266,6 @@ export default function OrganizationStructure() {
                     <option key={unit.id} value={unit.id}>{'— '.repeat(unit.depth)}{unit.name}</option>
                   ))}
                 </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="organization-order">Порядок отображения</label>
-                <input id="organization-order" type="number" value={formData.sort_order} onChange={event => setFormData({ ...formData, sort_order: event.target.value })} />
               </div>
               {editingUnit && (
                 <label className="organization-inactive-toggle">

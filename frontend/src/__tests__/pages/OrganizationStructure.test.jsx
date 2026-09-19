@@ -54,6 +54,8 @@ describe('OrganizationStructure', () => {
     render(<OrganizationStructure />);
     const addChildButton = await screen.findByRole('button', { name: 'Добавить подразделение в Компания' });
     fireEvent.click(addChildButton);
+    expect(screen.queryByLabelText('Код')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Порядок отображения')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Название *'), { target: { value: 'Финансы' } });
     fireEvent.change(screen.getByLabelText('Тип'), { target: { value: 'department' } });
     fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
