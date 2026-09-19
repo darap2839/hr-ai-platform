@@ -182,6 +182,23 @@ def list_documents(
     return [doc for doc in docs if minio_service.file_exists(doc.file_path)]
 
 
+@router.get("/departments", response_model=List[str])
+def list_document_departments(db: Session = Depends(get_db)):
+    """Вернуть актуальный список отделов, используемых в документах."""
+    rows = (
+        db.query(DocumentModel.department)
+        .filter(
+            DocumentModel.is_deleted == False,
+            DocumentModel.department.isnot(None),
+            DocumentModel.department != "",
+        )
+        .distinct()
+        .order_by(DocumentModel.department.asc())
+        .all()
+    )
+    return [department for department, in rows]
+
+
 @router.get("/{doc_id}/file")
 def get_document_file(
     doc_id: int,

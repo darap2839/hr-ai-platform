@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from app.api.documents import (
     delete_document,
     get_document_version,
+    list_document_departments,
     list_document_versions,
     list_documents,
     permanently_delete_document,
@@ -37,6 +38,22 @@ def test_list_documents_applies_archive_scope(archived, expected_operator):
     archive_expression = query.filter.call_args_list[1].args[0]
     assert archive_expression.operator.__name__ == expected_operator
     assert archive_expression.right.value == "archived"
+
+
+def test_list_document_departments_returns_distinct_sorted_values():
+    query = MagicMock()
+    query.filter.return_value = query
+    query.distinct.return_value = query
+    query.order_by.return_value = query
+    query.all.return_value = [("Finance",), ("HR",), ("IT",)]
+    db = MagicMock()
+    db.query.return_value = query
+
+    result = list_document_departments(db=db)
+
+    assert result == ["Finance", "HR", "IT"]
+    query.distinct.assert_called_once()
+    query.order_by.assert_called_once()
 
 
 def test_delete_document_keeps_source_file_for_recovery():
