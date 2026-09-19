@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager, suppress
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -6,11 +9,24 @@ from app.api.router import api_router
 from app.api.websockets import router as websocket_router
 from app.api.sse import router as sse_router
 from app.core.middleware import restful_cache_middleware
+from app.services.trash_cleanup_service import trash_cleanup_loop
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    cleanup_task = asyncio.create_task(trash_cleanup_loop())
+    try:
+        yield
+    finally:
+        cleanup_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await cleanup_task
 
 app = FastAPI(
     title="HR AI Platform",
     description="MVP HR-платформы со сквозным процессом подбора, AI matching и подготовкой к Keycloak SSO.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
