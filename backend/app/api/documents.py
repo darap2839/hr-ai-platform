@@ -375,6 +375,24 @@ def delete_document(doc_id: int, db: Session = Depends(get_db)):
     return {"status": "deleted", "id": doc_id}
 
 
+@router.delete("/{doc_id}/permanent")
+def permanently_delete_document(doc_id: int, db: Session = Depends(get_db)):
+    """Окончательно удалить документ из корзины и исходный файл."""
+    doc = db.query(DocumentModel).filter(
+        DocumentModel.id == doc_id,
+        DocumentModel.is_deleted == True,
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Deleted document not found")
+    if doc.file_path and not minio_service.delete_file(doc.file_path):
+        raise HTTPException(status_code=502, detail="Не удалось удалить исходный файл")
+
+    db.delete(doc)
+    db.commit()
+    return {"status": "permanently_deleted", "id": doc_id}
+
+
 @router.post("/{doc_id}/restore", response_model=DocumentResponse)
 def restore_document(doc_id: int, db: Session = Depends(get_db)):
     """Восстановить мягко удалённый документ вместе с исходным статусом."""

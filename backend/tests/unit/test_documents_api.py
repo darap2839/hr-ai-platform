@@ -2,12 +2,14 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 
 from app.api.documents import (
     delete_document,
     get_document_version,
     list_document_versions,
     list_documents,
+    permanently_delete_document,
     restore_document,
     restore_document_version,
     update_document,
@@ -54,6 +56,50 @@ def test_delete_document_keeps_source_file_for_recovery():
     assert document.deleted_at.tzinfo == timezone.utc
     delete_file.assert_not_called()
     db.commit.assert_called_once()
+
+
+def test_permanently_delete_document_removes_file_and_database_record():
+    document = MagicMock(
+        id=7,
+        file_path="documents/source.pdf",
+        is_deleted=True,
+    )
+    query = MagicMock()
+    query.filter.return_value = query
+    query.first.return_value = document
+    db = MagicMock()
+    db.query.return_value = query
+
+    with patch("app.api.documents.minio_service.delete_file", return_value=True) as delete_file:
+        result = permanently_delete_document(doc_id=document.id, db=db)
+
+    assert result == {"status": "permanently_deleted", "id": document.id}
+    delete_file.assert_called_once_with(document.file_path)
+    db.delete.assert_called_once_with(document)
+    db.commit.assert_called_once()
+
+
+def test_permanently_delete_document_keeps_record_when_file_deletion_fails():
+    document = MagicMock(
+        id=7,
+        file_path="documents/source.pdf",
+        is_deleted=True,
+    )
+    query = MagicMock()
+    query.filter.return_value = query
+    query.first.return_value = document
+    db = MagicMock()
+    db.query.return_value = query
+
+    with (
+        patch("app.api.documents.minio_service.delete_file", return_value=False),
+        pytest.raises(HTTPException) as error,
+    ):
+        permanently_delete_document(doc_id=document.id, db=db)
+
+    assert error.value.status_code == 502
+    db.delete.assert_not_called()
+    db.commit.assert_not_called()
 
 
 @pytest.mark.parametrize("deleted", [False, True])
