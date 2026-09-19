@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, DateTime, Boolean, UniqueConstraint, JSON
+from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, DateTime, Boolean, UniqueConstraint, JSON, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -39,6 +39,43 @@ class UserModel(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class OrganizationUnitModel(Base):
+    __tablename__ = "organization_units"
+    __table_args__ = (
+        CheckConstraint(
+            "unit_type IN ('company', 'directorate', 'department', 'team')",
+            name="ck_organization_units_type",
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(200), nullable=False, index=True)
+    code = Column(String(100), unique=True, nullable=True, index=True)
+    unit_type = Column(String(50), nullable=False, default="department", index=True)
+    parent_id = Column(
+        Integer,
+        ForeignKey("organization_units.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    sort_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    parent = relationship(
+        "OrganizationUnitModel",
+        remote_side=[id],
+        back_populates="children",
+    )
+    children = relationship(
+        "OrganizationUnitModel",
+        back_populates="parent",
+        order_by="OrganizationUnitModel.sort_order, OrganizationUnitModel.name",
+        passive_deletes=True,
+    )
 
 
 class VacancyModel(Base):
