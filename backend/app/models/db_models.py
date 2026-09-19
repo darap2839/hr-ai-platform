@@ -122,6 +122,7 @@ class DocumentModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     published_at = Column(DateTime(timezone=True))
     is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime(timezone=True), index=True)
 
     author = relationship("UserModel", backref="documents")
     versions = relationship(

@@ -48,6 +48,7 @@ class DocumentResponse(DocumentBase):
     updated_at: Optional[datetime] = None
     published_at: Optional[datetime] = None
     is_deleted: bool = False
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

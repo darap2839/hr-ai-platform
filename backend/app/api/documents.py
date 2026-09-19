@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
@@ -369,6 +369,7 @@ def delete_document(doc_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Document not found")
     
     doc.is_deleted = True
+    doc.deleted_at = datetime.now(timezone.utc)
     db.commit()
     
     return {"status": "deleted", "id": doc_id}
@@ -388,6 +389,7 @@ def restore_document(doc_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Исходный файл документа недоступен")
 
     doc.is_deleted = False
+    doc.deleted_at = None
     db.commit()
     db.refresh(doc)
     return doc

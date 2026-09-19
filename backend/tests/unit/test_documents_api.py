@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -49,6 +50,8 @@ def test_delete_document_keeps_source_file_for_recovery():
 
     assert result == {"status": "deleted", "id": document.id}
     assert document.is_deleted is True
+    assert isinstance(document.deleted_at, datetime)
+    assert document.deleted_at.tzinfo == timezone.utc
     delete_file.assert_not_called()
     db.commit.assert_called_once()
 
@@ -75,6 +78,7 @@ def test_restore_document_preserves_previous_status():
         id=7,
         file_path="documents/source.pdf",
         is_deleted=True,
+        deleted_at=datetime(2026, 9, 1, tzinfo=timezone.utc),
         status="archived",
     )
     query = MagicMock()
@@ -88,6 +92,7 @@ def test_restore_document_preserves_previous_status():
 
     assert result is document
     assert document.is_deleted is False
+    assert document.deleted_at is None
     assert document.status == "archived"
     db.commit.assert_called_once()
     db.refresh.assert_called_once_with(document)
