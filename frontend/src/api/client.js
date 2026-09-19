@@ -217,6 +217,12 @@ export const documentsApi = {
     apiRequest(`/api/documents/${id}/versions/${versionNumber}`)
   ),
 
+  restoreDocumentVersion: (id, versionNumber) => (
+    apiRequest(`/api/documents/${id}/versions/${versionNumber}/restore`, {
+      method: 'POST'
+    })
+  ),
+
   getDocumentFile: async (id, download = false) => {
     const response = await fetch(
       `${API_URL}/api/documents/${id}/file?download=${download}`,

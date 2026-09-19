@@ -9,6 +9,7 @@ vi.mock('../../api/client', () => ({
     getDocument: vi.fn(),
     getDocumentVersions: vi.fn(),
     getDocumentVersion: vi.fn(),
+    restoreDocumentVersion: vi.fn(),
     getDocumentFile: vi.fn(),
     updateDocument: vi.fn()
   }
@@ -61,6 +62,11 @@ describe('KnowledgeDocumentDetail', () => {
     documentsApi.getDocument.mockResolvedValue(documentItem);
     documentsApi.getDocumentVersions.mockResolvedValue([versionSummary]);
     documentsApi.getDocumentVersion.mockResolvedValue(documentVersion);
+    documentsApi.restoreDocumentVersion.mockResolvedValue({
+      ...documentItem,
+      ...documentVersion,
+      id: documentItem.id
+    });
   });
 
   it('показывает документ на отдельной странице в режиме чтения', async () => {
@@ -90,6 +96,20 @@ describe('KnowledgeDocumentDetail', () => {
     expect(await screen.findByRole('heading', { name: documentVersion.title })).toBeInTheDocument();
     expect(screen.getByText(documentVersion.content_text)).toBeInTheDocument();
     expect(documentsApi.getDocumentVersion).toHaveBeenCalledWith(documentItem.id, 1);
-    expect(screen.queryByRole('button', { name: /восстановить/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /восстановить эту версию/i })).toBeInTheDocument();
+  });
+
+  it('восстанавливает выбранную версию после подтверждения', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: /история версий/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /версия 1/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /восстановить эту версию/i }));
+
+    await waitFor(() => {
+      expect(documentsApi.restoreDocumentVersion).toHaveBeenCalledWith(documentItem.id, 1);
+    });
+    expect(screen.queryByRole('dialog', { name: /история версий/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: documentVersion.title })).toBeInTheDocument();
   });
 });

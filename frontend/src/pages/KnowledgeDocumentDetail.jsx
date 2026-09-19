@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, ChevronRight, Download, FileText, Folder, History, Pencil, Save, Tag, X } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronRight, Download, FileText, Folder, History, Pencil, RotateCcw, Save, Tag, X } from 'lucide-react';
 import { documentsApi } from '../api/client';
 
 const typeLabels = {
@@ -49,6 +49,7 @@ export default function KnowledgeDocumentDetail() {
   const [historyError, setHistoryError] = useState('');
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [selectedVersionLoading, setSelectedVersionLoading] = useState(false);
+  const [restoringVersion, setRestoringVersion] = useState(false);
 
   useEffect(() => {
     const loadDocument = async () => {
@@ -137,6 +138,27 @@ export default function KnowledgeDocumentDetail() {
     setHistoryOpen(false);
     setSelectedVersion(null);
     setHistoryError('');
+  };
+
+  const restoreVersion = async () => {
+    if (!window.confirm(`Восстановить версию ${selectedVersion.version_number}? Текущая редакция останется в истории.`)) {
+      return;
+    }
+
+    setRestoringVersion(true);
+    setHistoryError('');
+    try {
+      const restoredDocument = await documentsApi.restoreDocumentVersion(
+        documentItem.id,
+        selectedVersion.version_number
+      );
+      setDocumentItem(restoredDocument);
+      closeHistory();
+    } catch (restoreError) {
+      setHistoryError(restoreError.message || 'Не удалось восстановить версию');
+    } finally {
+      setRestoringVersion(false);
+    }
   };
 
   if (loading) return <div className="page-container"><div className="loading-state">Загрузка...</div></div>;
@@ -314,6 +336,18 @@ export default function KnowledgeDocumentDetail() {
                     {(selectedVersion.changed_fields || []).map(field => (
                       <span key={field}>{versionFieldLabels[field] || field}</span>
                     ))}
+                  </div>
+                  <div className="knowledge-version-actions">
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={restoreVersion}
+                      disabled={restoringVersion}
+                    >
+                      <RotateCcw size={18} />
+                      {restoringVersion ? 'Восстановление...' : 'Восстановить эту версию'}
+                    </button>
+                    <p>Текущая редакция сохранится в истории версий.</p>
                   </div>
                   <section>
                     <h3>{selectedVersion.title}</h3>
