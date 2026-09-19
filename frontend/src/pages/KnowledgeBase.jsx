@@ -2,7 +2,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { documentsApi } from '../api/client';
-import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, ArchiveRestore, Trash2, SlidersHorizontal } from 'lucide-react';
+import { FileText, Search, Plus, Upload, X, Check, ArrowLeft, MoreVertical, ExternalLink, Download, Archive, ArchiveRestore, Trash2, SlidersHorizontal, Timer } from 'lucide-react';
+
+const TRASH_RETENTION_DAYS = 30;
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+const formatDays = (days) => {
+  const lastTwoDigits = days % 100;
+  const lastDigit = days % 10;
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return `${days} дней`;
+  if (lastDigit === 1) return `${days} день`;
+  if (lastDigit >= 2 && lastDigit <= 4) return `${days} дня`;
+  return `${days} дней`;
+};
+
+const getTrashRetention = (deletedAt) => {
+  if (!deletedAt) return null;
+  const deletedTime = new Date(deletedAt).getTime();
+  if (Number.isNaN(deletedTime)) return null;
+  const expiresAt = deletedTime + TRASH_RETENTION_DAYS * DAY_IN_MS;
+  return {
+    deletedDate: new Date(deletedAt).toLocaleDateString('ru-RU'),
+    daysLeft: Math.max(0, Math.ceil((expiresAt - Date.now()) / DAY_IN_MS))
+  };
+};
 
 const documentMenuItemStyle = {
   display: 'flex',
@@ -323,7 +346,11 @@ function KnowledgeBase() {
         </div>
       ) : (
         <div className="data-list">
-          {documents.map((doc) => (
+          {documents.map((doc) => {
+            const trashRetention = documentView === 'deleted'
+              ? getTrashRetention(doc.deleted_at)
+              : null;
+            return (
             <div
               key={doc.id}
               className={`data-card${activeMenuId === doc.id ? ' menu-open' : ''}`}
@@ -449,9 +476,18 @@ function KnowledgeBase() {
                     📄 {doc.file_name || 'Без файла'}
                   </button>
                 )}
+                {documentView === 'deleted' && (
+                  <span className={`knowledge-deletion-info${trashRetention?.daysLeft === 0 ? ' expired' : ''}`}>
+                    <Timer size={16} />
+                    {trashRetention
+                      ? `Удалён ${trashRetention.deletedDate} · ${trashRetention.daysLeft === 0 ? 'Срок хранения истёк' : `Удалится через ${formatDays(trashRetention.daysLeft)}`}`
+                      : 'Дата удаления не указана'}
+                  </span>
+                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

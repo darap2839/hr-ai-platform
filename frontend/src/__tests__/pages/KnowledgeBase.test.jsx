@@ -122,10 +122,15 @@ describe('KnowledgeBase document preview', () => {
   });
 
   it('восстанавливает документ из удалённых', async () => {
-    const deletedDocument = { ...documentItem, is_deleted: true };
+    const deletedDocument = {
+      ...documentItem,
+      is_deleted: true,
+      deleted_at: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString()
+    };
     documentsApi.getDocuments.mockResolvedValue([deletedDocument]);
     renderKnowledgeBase('/knowledge-base?view=deleted');
     await screen.findByRole('heading', { name: deletedDocument.title });
+    expect(screen.getByText(/Удалится через 1 день/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: `Действия с документом ${deletedDocument.title}` }));
     fireEvent.click(screen.getByRole('button', { name: /восстановить/i }));

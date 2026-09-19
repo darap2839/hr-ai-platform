@@ -76,6 +76,23 @@
   font-size: 13px;
 }
 
+.knowledge-deletion-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: #fff7ed;
+  padding: 6px 10px;
+  color: #9a3412;
+  font-weight: 700;
+}
+
+.knowledge-deletion-info.expired {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .knowledge-toolbar {
   display: grid;
   gap: 14px;
@@ -733,6 +750,12 @@
 }
 
 @media (max-width: 640px) {
+  .knowledge-deletion-info {
+    width: 100%;
+    margin-left: 0;
+    border-radius: 10px;
+  }
+
   .knowledge-navigation-row {
     align-items: stretch;
     flex-direction: column;
