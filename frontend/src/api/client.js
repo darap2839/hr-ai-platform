@@ -249,6 +249,10 @@ export const documentsApi = {
   deleteDocument: (id) => apiRequest(`/api/documents/${id}`, { method: 'DELETE' }),
 
   restoreDocument: (id) => apiRequest(`/api/documents/${id}/restore`, { method: 'POST' }),
+
+  permanentlyDeleteDocument: (id) => (
+    apiRequest(`/api/documents/${id}/permanent`, { method: 'DELETE' })
+  ),
 };
 
 // API для уведомлений

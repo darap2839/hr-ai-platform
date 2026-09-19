@@ -179,6 +179,21 @@ function KnowledgeBase() {
     }
   };
 
+  const handlePermanentlyDeleteDocument = async (doc) => {
+    const confirmation = window.prompt(
+      `Документ «${doc.title}» и исходный файл будут удалены без возможности восстановления. Введите УДАЛИТЬ для подтверждения.`
+    );
+    if (confirmation?.trim().toUpperCase() !== 'УДАЛИТЬ') return;
+
+    try {
+      setActiveMenuId(null);
+      await documentsApi.permanentlyDeleteDocument(doc.id);
+      await fetchDocuments();
+    } catch (error) {
+      alert('Не удалось удалить документ навсегда: ' + error.message);
+    }
+  };
+
   const handleUpdateDocument = async (id, payload) => {
     await documentsApi.updateDocument(id, payload);
     setEditingDocument(null);
@@ -406,13 +421,23 @@ function KnowledgeBase() {
                       }}
                     >
                       {documentView === 'deleted' ? (
-                        <button
-                          className="document-menu-item"
-                          style={documentMenuItemStyle}
-                          onClick={() => handleRestoreDeletedDocument(doc)}
-                        >
-                          <ArchiveRestore size={18} color="#166534" /> Восстановить
-                        </button>
+                        <>
+                          <button
+                            className="document-menu-item"
+                            style={documentMenuItemStyle}
+                            onClick={() => handleRestoreDeletedDocument(doc)}
+                          >
+                            <ArchiveRestore size={18} color="#166534" /> Восстановить
+                          </button>
+                          <div style={{ height: '1px', margin: '4px 0', background: '#e2e8f0' }} />
+                          <button
+                            className="document-menu-item document-menu-item-danger"
+                            style={{ ...documentMenuItemStyle, color: '#dc2626' }}
+                            onClick={() => handlePermanentlyDeleteDocument(doc)}
+                          >
+                            <Trash2 size={18} /> Удалить навсегда
+                          </button>
+                        </>
                       ) : (
                         <>
                           <button

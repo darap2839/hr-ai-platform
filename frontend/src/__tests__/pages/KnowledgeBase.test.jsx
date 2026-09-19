@@ -10,7 +10,8 @@ vi.mock('../../api/client', () => ({
     getDocumentFile: vi.fn(),
     updateDocument: vi.fn(),
     deleteDocument: vi.fn(),
-    restoreDocument: vi.fn()
+    restoreDocument: vi.fn(),
+    permanentlyDeleteDocument: vi.fn()
   }
 }));
 
@@ -38,6 +39,7 @@ describe('KnowledgeBase document preview', () => {
     documentsApi.getDocuments.mockResolvedValue([documentItem]);
     documentsApi.updateDocument.mockResolvedValue({});
     documentsApi.restoreDocument.mockResolvedValue({});
+    documentsApi.permanentlyDeleteDocument.mockResolvedValue({});
   });
 
   it('открывает документ на отдельной странице', async () => {
@@ -139,6 +141,28 @@ describe('KnowledgeBase document preview', () => {
       expect(documentsApi.restoreDocument).toHaveBeenCalledWith(deletedDocument.id);
       expect(documentsApi.getDocuments).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('безвозвратно удаляет документ только после ввода подтверждения', async () => {
+    const deletedDocument = {
+      ...documentItem,
+      is_deleted: true,
+      deleted_at: new Date().toISOString()
+    };
+    documentsApi.getDocuments.mockResolvedValue([deletedDocument]);
+    const prompt = vi.spyOn(window, 'prompt').mockReturnValue('УДАЛИТЬ');
+    renderKnowledgeBase('/knowledge-base?view=deleted');
+    await screen.findByRole('heading', { name: deletedDocument.title });
+
+    fireEvent.click(screen.getByRole('button', { name: `Действия с документом ${deletedDocument.title}` }));
+    fireEvent.click(screen.getByRole('button', { name: /удалить навсегда/i }));
+
+    await waitFor(() => {
+      expect(documentsApi.permanentlyDeleteDocument).toHaveBeenCalledWith(deletedDocument.id);
+      expect(documentsApi.getDocuments).toHaveBeenCalledTimes(2);
+    });
+    expect(prompt).toHaveBeenCalledWith(expect.stringContaining('Введите УДАЛИТЬ'));
+    prompt.mockRestore();
   });
 
   it('восстанавливает архивный документ как черновик', async () => {
