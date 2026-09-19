@@ -13,6 +13,7 @@ import CandidateDetailPage from './pages/CandidateDetail';
 import SupportPage from './pages/Support';
 import KnowledgeBase from './pages/KnowledgeBase';
 import KnowledgeDocumentDetail from './pages/KnowledgeDocumentDetail';
+import OrganizationStructure from './pages/OrganizationStructure';
 import { authApi } from './api/client';
 import { initSSEClient } from './api/sseNotifications';
 import { KeycloakProvider, useKeycloak } from './contexts/KeycloakContext';
@@ -187,6 +188,7 @@ function App() {
             <Route path="/support" element={<SupportPage />} />
             <Route path="/knowledge-base" element={<KnowledgeBase />} />
             <Route path="/knowledge-base/documents/:id" element={<KnowledgeDocumentDetail />} />
+            <Route path="/organization" element={<OrganizationStructure />} />
             <Route path="/candidates/:id" element={<CandidateDetailPage />} />
             <Route path="*" element={<Navigate to="/vacancies" replace />} />
           </Routes>

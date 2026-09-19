@@ -157,6 +157,23 @@ export const dashboardApi = {
   getDashboard: () => apiRequest('/api/dashboard'),
 };
 
+export const organizationApi = {
+  getUnits: (includeInactive = false) => (
+    apiRequest(`/api/organization/units?include_inactive=${includeInactive}`)
+  ),
+  createUnit: (payload) => apiRequest('/api/organization/units', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
+  updateUnit: (id, payload) => apiRequest(`/api/organization/units/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }),
+  deactivateUnit: (id) => apiRequest(`/api/organization/units/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
 // API для работы с документами (база знаний)
 export const documentsApi = {
   getDocuments: (params = {}) => {

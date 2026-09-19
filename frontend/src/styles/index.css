@@ -28,6 +28,7 @@
 @import './pages/flow.css';
 @import './pages/candidates.css';
 @import './pages/knowledge-base.css';
+@import './pages/organization.css';
 
 /* Responsive */
 @import './responsive.css';
