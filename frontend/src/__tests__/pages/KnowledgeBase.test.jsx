@@ -7,6 +7,7 @@ import { documentsApi } from '../../api/client';
 vi.mock('../../api/client', () => ({
   documentsApi: {
     getDocuments: vi.fn(),
+    getDepartments: vi.fn(),
     getDocumentFile: vi.fn(),
     updateDocument: vi.fn(),
     deleteDocument: vi.fn(),
@@ -37,6 +38,7 @@ describe('KnowledgeBase document preview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     documentsApi.getDocuments.mockResolvedValue([documentItem]);
+    documentsApi.getDepartments.mockResolvedValue(['HR', 'Отдел разработки']);
     documentsApi.updateDocument.mockResolvedValue({});
     documentsApi.restoreDocument.mockResolvedValue({});
     documentsApi.permanentlyDeleteDocument.mockResolvedValue({});
@@ -79,6 +81,15 @@ describe('KnowledgeBase document preview', () => {
     expect(params.get('doc_type')).toBe('procedure');
     expect(params.get('department')).toBe('HR');
     expect(params.get('archived')).toBe('false');
+  });
+
+  it('загружает актуальные отделы для фильтра с backend', async () => {
+    renderKnowledgeBase();
+
+    expect(await screen.findByRole('option', { name: 'Отдел разработки' })).toBeInTheDocument();
+    expect(documentsApi.getDepartments).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('option', { name: 'Финансы' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Юридический' })).not.toBeInTheDocument();
   });
 
   it('переключается на архив и сохраняет раздел в URL', async () => {

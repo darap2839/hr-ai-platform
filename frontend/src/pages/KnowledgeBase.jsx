@@ -48,6 +48,7 @@ function KnowledgeBase() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [documents, setDocuments] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [documentView, setDocumentView] = useState(
     ['archive', 'deleted'].includes(searchParams.get('view'))
@@ -89,6 +90,22 @@ function KnowledgeBase() {
   useEffect(() => {
     fetchDocuments();
   }, [filters.doc_type, filters.department, debouncedSearch, documentView]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchDepartments = async () => {
+      try {
+        const response = await documentsApi.getDepartments();
+        if (active) setDepartments(response);
+      } catch (error) {
+        console.error('Error fetching document departments:', error);
+      }
+    };
+    fetchDepartments();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setDebouncedSearch(filters.search.trim()), 350);
@@ -311,10 +328,12 @@ function KnowledgeBase() {
               onChange={(event) => setFilters({ ...filters, department: event.target.value })}
             >
               <option value="">Все отделы</option>
-              <option value="HR">HR</option>
-              <option value="IT">IT</option>
-              <option value="Finance">Финансы</option>
-              <option value="Legal">Юридический</option>
+              {filters.department && !departments.includes(filters.department) && (
+                <option value={filters.department}>{filters.department}</option>
+              )}
+              {departments.map((department) => (
+                <option key={department} value={department}>{department}</option>
+              ))}
             </select>
           </label>
 

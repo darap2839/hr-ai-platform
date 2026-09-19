@@ -164,6 +164,8 @@ export const documentsApi = {
     const path = `/api/documents${queryString ? `?${queryString}` : ''}`;
     return apiRequest(path);
   },
+
+  getDepartments: () => apiRequest('/api/documents/departments'),
   
   previewDocument: (file) => {
     const formData = new FormData();
