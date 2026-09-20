@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, DateTime, Boolean, UniqueConstraint, JSON, CheckConstraint
+from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, DateTime, Boolean, UniqueConstraint, JSON, CheckConstraint, Index, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -79,6 +79,44 @@ class OrganizationUnitModel(Base):
         order_by="OrganizationUnitModel.sort_order, OrganizationUnitModel.name",
         passive_deletes=True,
     )
+    employees = relationship(
+        "OrganizationEmployeeModel",
+        back_populates="unit",
+        order_by="OrganizationEmployeeModel.full_name",
+    )
+
+
+class OrganizationEmployeeModel(Base):
+    """Public work profile used by the internal company directory."""
+
+    __tablename__ = "organization_employees"
+    __table_args__ = (
+        Index(
+            "uq_organization_employees_active_manager",
+            "unit_id",
+            unique=True,
+            postgresql_where=text("is_manager = true AND is_active = true"),
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    unit_id = Column(
+        Integer,
+        ForeignKey("organization_units.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    full_name = Column(String(255), nullable=False, index=True)
+    position = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
+    location = Column(String(255), nullable=True)
+    is_manager = Column(Boolean, nullable=False, default=False, index=True)
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    unit = relationship("OrganizationUnitModel", back_populates="employees")
 
 
 class VacancyModel(Base):

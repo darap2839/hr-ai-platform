@@ -48,3 +48,38 @@ class OrganizationUnitResponse(OrganizationUnitBase):
 
 
 OrganizationUnitResponse.model_rebuild()
+
+
+class OrganizationEmployeeBase(BaseModel):
+    full_name: str = Field(..., min_length=1, max_length=255)
+    position: str = Field(..., min_length=1, max_length=255)
+    email: Optional[str] = Field(default=None, max_length=255)
+    phone: Optional[str] = Field(default=None, max_length=50)
+    location: Optional[str] = Field(default=None, max_length=255)
+    is_manager: bool = False
+
+
+class OrganizationEmployeeCreate(OrganizationEmployeeBase):
+    pass
+
+
+class OrganizationEmployeeUpdate(BaseModel):
+    unit_id: Optional[int] = None
+    full_name: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    position: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    email: Optional[str] = Field(default=None, max_length=255)
+    phone: Optional[str] = Field(default=None, max_length=50)
+    location: Optional[str] = Field(default=None, max_length=255)
+    is_manager: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+class OrganizationEmployeeResponse(OrganizationEmployeeBase):
+    id: int
+    unit_id: int
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

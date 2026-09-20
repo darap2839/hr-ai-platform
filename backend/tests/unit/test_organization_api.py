@@ -7,7 +7,9 @@ from fastapi import HTTPException
 
 from app.api.organization import (
     build_organization_tree,
+    clear_unit_manager,
     deactivate_organization_unit,
+    get_active_unit,
     validate_parent,
 )
 
@@ -94,3 +96,29 @@ def test_deactivate_organization_unit_rejects_active_children():
 
     assert error.value.status_code == 409
     db.commit.assert_not_called()
+
+
+def test_get_active_unit_returns_not_found_for_unknown_unit():
+    query = MagicMock()
+    query.filter.return_value = query
+    query.first.return_value = None
+    db = MagicMock()
+    db.query.return_value = query
+
+    with pytest.raises(HTTPException) as error:
+        get_active_unit(db, unit_id=404)
+
+    assert error.value.status_code == 404
+
+
+def test_clear_unit_manager_unsets_previous_manager():
+    query = MagicMock()
+    query.filter.return_value = query
+    db = MagicMock()
+    db.query.return_value = query
+
+    clear_unit_manager(db, unit_id=12, exclude_id=5)
+
+    assert query.filter.call_count == 2
+    query.update.assert_called_once()
+    assert query.update.call_args.kwargs["synchronize_session"] is False

@@ -10,6 +10,7 @@ from app.models.db_models import (
     DocumentModel,
     DocumentVersionModel,
     OrganizationUnitModel,
+    OrganizationEmployeeModel,
 )
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "DocumentModel",
     "DocumentVersionModel",
     "OrganizationUnitModel",
+    "OrganizationEmployeeModel",
 ]
