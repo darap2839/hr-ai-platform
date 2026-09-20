@@ -53,6 +53,9 @@ class OrganizationUnitModel(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(200), nullable=False, index=True)
     code = Column(String(100), unique=True, nullable=True, index=True)
+    description = Column(Text, nullable=True)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
     unit_type = Column(String(50), nullable=False, default="department", index=True)
     parent_id = Column(
         Integer,

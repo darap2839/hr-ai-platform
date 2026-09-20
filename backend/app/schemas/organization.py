@@ -12,6 +12,9 @@ OrganizationUnitType = Literal["company", "directorate", "department", "team"]
 class OrganizationUnitBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     code: Optional[str] = Field(default=None, max_length=100)
+    description: Optional[str] = None
+    email: Optional[str] = Field(default=None, max_length=255)
+    phone: Optional[str] = Field(default=None, max_length=50)
     unit_type: OrganizationUnitType = "department"
     parent_id: Optional[int] = None
     sort_order: int = 0
@@ -24,6 +27,9 @@ class OrganizationUnitCreate(OrganizationUnitBase):
 class OrganizationUnitUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=200)
     code: Optional[str] = Field(default=None, max_length=100)
+    description: Optional[str] = None
+    email: Optional[str] = Field(default=None, max_length=255)
+    phone: Optional[str] = Field(default=None, max_length=50)
     unit_type: Optional[OrganizationUnitType] = None
     parent_id: Optional[int] = None
     is_active: Optional[bool] = None

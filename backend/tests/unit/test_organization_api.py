@@ -17,6 +17,9 @@ def make_unit(unit_id, name, parent_id=None, sort_order=0, is_active=True):
         id=unit_id,
         name=name,
         code=None,
+        description=None,
+        email=None,
+        phone=None,
         unit_type="department",
         parent_id=parent_id,
         is_active=is_active,
@@ -36,6 +39,19 @@ def test_build_organization_tree_nests_children_under_parent():
     assert len(result) == 1
     assert result[0]["name"] == "Компания"
     assert result[0]["children"][0]["name"] == "HR"
+
+
+def test_build_organization_tree_includes_department_profile():
+    department = make_unit(1, "HR")
+    department.description = "Подбор и развитие сотрудников"
+    department.email = "hr@example.com"
+    department.phone = "+7 900 000-00-00"
+
+    result = build_organization_tree([department])
+
+    assert result[0]["description"] == "Подбор и развитие сотрудников"
+    assert result[0]["email"] == "hr@example.com"
+    assert result[0]["phone"] == "+7 900 000-00-00"
 
 
 def test_validate_parent_rejects_self_reference():
