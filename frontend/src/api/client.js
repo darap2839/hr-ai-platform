@@ -161,6 +161,10 @@ export const organizationApi = {
   getUnits: (includeInactive = false) => (
     apiRequest(`/api/organization/units?include_inactive=${includeInactive}`)
   ),
+  getUnit: (id) => apiRequest(`/api/organization/units/${id}`),
+  getEmployees: (unitId, includeInactive = false) => (
+    apiRequest(`/api/organization/units/${unitId}/employees?include_inactive=${includeInactive}`)
+  ),
   createUnit: (payload) => apiRequest('/api/organization/units', {
     method: 'POST',
     body: JSON.stringify(payload),

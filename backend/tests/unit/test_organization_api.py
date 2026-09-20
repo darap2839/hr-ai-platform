@@ -9,6 +9,7 @@ from app.api.organization import (
     build_organization_tree,
     clear_unit_manager,
     deactivate_organization_unit,
+    find_unit_node,
     get_active_unit,
     validate_parent,
 )
@@ -54,6 +55,17 @@ def test_build_organization_tree_includes_department_profile():
     assert result[0]["description"] == "Подбор и развитие сотрудников"
     assert result[0]["email"] == "hr@example.com"
     assert result[0]["phone"] == "+7 900 000-00-00"
+
+
+def test_find_unit_node_returns_nested_department():
+    company = make_unit(1, "Компания")
+    department = make_unit(2, "HR", parent_id=1)
+    tree = build_organization_tree([company, department])
+
+    result = find_unit_node(tree, unit_id=2)
+
+    assert result["name"] == "HR"
+    assert find_unit_node(tree, unit_id=999) is None
 
 
 def test_validate_parent_rejects_self_reference():

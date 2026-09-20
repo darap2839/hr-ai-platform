@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   ChevronDown,
@@ -38,7 +39,7 @@ const flattenUnits = (units, depth = 0) => units.flatMap(unit => [
   ...flattenUnits(unit.children || [], depth + 1)
 ]);
 
-function OrganizationNode({ unit, onAddChild, onEdit, onDeactivate }) {
+function OrganizationNode({ unit, onAddChild, onEdit, onDeactivate, onOpen }) {
   const [expanded, setExpanded] = useState(true);
   const hasChildren = unit.children?.length > 0;
 
@@ -57,13 +58,13 @@ function OrganizationNode({ unit, onAddChild, onEdit, onDeactivate }) {
             : <span />}
         </button>
         <div className="organization-node-icon"><Building2 size={20} /></div>
-        <div className="organization-node-content">
+        <button type="button" className="organization-node-content organization-node-link" onClick={() => onOpen(unit)} aria-label={`Открыть ${unit.name}`}>
           <strong>{unit.name}</strong>
           <div>
             <span>{unitTypeLabels[unit.unit_type] || unit.unit_type}</span>
             {!unit.is_active && <span>Отключено</span>}
           </div>
-        </div>
+        </button>
         <div className="organization-node-actions">
           <button type="button" className="icon-button" aria-label={`Добавить подразделение в ${unit.name}`} onClick={() => onAddChild(unit)}>
             <Plus size={18} />
@@ -88,6 +89,7 @@ function OrganizationNode({ unit, onAddChild, onEdit, onDeactivate }) {
               onAddChild={onAddChild}
               onEdit={onEdit}
               onDeactivate={onDeactivate}
+              onOpen={onOpen}
             />
           ))}
         </div>
@@ -97,6 +99,7 @@ function OrganizationNode({ unit, onAddChild, onEdit, onDeactivate }) {
 }
 
 export default function OrganizationStructure() {
+  const navigate = useNavigate();
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -232,6 +235,7 @@ export default function OrganizationStructure() {
               onAddChild={openCreate}
               onEdit={openEdit}
               onDeactivate={deactivateUnit}
+              onOpen={unit => navigate(`/organization/units/${unit.id}`)}
             />
           ))}
         </div>

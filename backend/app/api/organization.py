@@ -72,6 +72,16 @@ def build_organization_tree(units: list[OrganizationUnitModel]) -> list[dict]:
     return roots
 
 
+def find_unit_node(nodes: list[dict], unit_id: int) -> dict | None:
+    for node in nodes:
+        if node["id"] == unit_id:
+            return node
+        found = find_unit_node(node["children"], unit_id)
+        if found:
+            return found
+    return None
+
+
 def validate_parent(
     db: Session,
     parent_id: int | None,
@@ -123,6 +133,20 @@ def create_organization_unit(
     db.add(unit)
     db.commit()
     db.refresh(unit)
+    return unit
+
+
+@router.get("/units/{unit_id}", response_model=OrganizationUnitResponse)
+def get_organization_unit(unit_id: int, db: Session = Depends(get_db)):
+    units = db.query(OrganizationUnitModel).filter(
+        OrganizationUnitModel.is_active == True,
+    ).order_by(
+        OrganizationUnitModel.sort_order,
+        OrganizationUnitModel.name,
+    ).all()
+    unit = find_unit_node(build_organization_tree(units), unit_id)
+    if not unit:
+        raise HTTPException(status_code=404, detail="Organization unit not found")
     return unit
 
 

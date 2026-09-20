@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import OrganizationStructure from '../../pages/OrganizationStructure';
 import { organizationApi } from '../../api/client';
 
@@ -43,7 +44,7 @@ describe('OrganizationStructure', () => {
   });
 
   it('показывает иерархию подразделений', async () => {
-    render(<OrganizationStructure />);
+    render(<MemoryRouter><OrganizationStructure /></MemoryRouter>);
 
     expect(await screen.findByRole('button', { name: 'Добавить подразделение в Компания' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Добавить подразделение в HR' })).toBeInTheDocument();
@@ -51,7 +52,7 @@ describe('OrganizationStructure', () => {
   });
 
   it('создаёт дочернее подразделение из узла дерева', async () => {
-    render(<OrganizationStructure />);
+    render(<MemoryRouter><OrganizationStructure /></MemoryRouter>);
     const addChildButton = await screen.findByRole('button', { name: 'Добавить подразделение в Компания' });
     fireEvent.click(addChildButton);
     expect(screen.queryByLabelText('Код')).not.toBeInTheDocument();

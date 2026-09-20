@@ -103,6 +103,17 @@
   min-width: 0;
 }
 
+.organization-node-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+
+.organization-node-link:hover strong {
+  color: var(--blue);
+}
+
 .organization-node-content strong {
   overflow: hidden;
   color: #172033;
@@ -176,6 +187,192 @@
   padding: 16px 24px;
 }
 
+.organization-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.organization-detail-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  padding: 26px;
+}
+
+.organization-detail-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.organization-detail-title > div:first-child {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #eaf4ff;
+  color: var(--blue);
+}
+
+.organization-detail-title h1 {
+  margin: 0 0 7px;
+  font-size: 32px;
+}
+
+.organization-detail-title p {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: #59616d;
+  line-height: 1.6;
+}
+
+.organization-detail-type {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #eef2f7;
+  padding: 4px 10px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.organization-contact-list {
+  display: grid;
+  min-width: 250px;
+  gap: 10px;
+}
+
+.organization-contact-list a,
+.organization-contact-list span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #475569;
+  text-decoration: none;
+}
+
+.organization-section {
+  margin-bottom: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  padding: 24px;
+}
+
+.organization-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.organization-section-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 20px;
+}
+
+.organization-section-header span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.organization-manager-card,
+.organization-employee-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.organization-manager-card {
+  max-width: 620px;
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.organization-employee-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #eaf4ff;
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.organization-employee-info {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.organization-employee-info strong {
+  color: #172033;
+}
+
+.organization-employee-info > span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.organization-employee-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.organization-employee-contacts a,
+.organization-employee-contacts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.organization-manager-mark {
+  margin-left: auto;
+  color: #d97706;
+}
+
+.organization-employees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.organization-directory-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 24px;
+  color: #64748b;
+  text-align: center;
+}
+
 @media (max-width: 640px) {
   .organization-toolbar,
   .organization-page .page-header {
@@ -208,6 +405,23 @@
   .organization-children {
     margin-left: 14px;
     padding-left: 10px;
+  }
+
+  .organization-detail-hero {
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .organization-contact-list {
+    min-width: 0;
+  }
+
+  .organization-section {
+    padding: 18px;
+  }
+
+  .organization-employees-grid {
+    grid-template-columns: 1fr;
   }
 
 }
