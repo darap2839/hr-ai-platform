@@ -165,6 +165,17 @@ export const organizationApi = {
   getEmployees: (unitId, includeInactive = false) => (
     apiRequest(`/api/organization/units/${unitId}/employees?include_inactive=${includeInactive}`)
   ),
+  createEmployee: (unitId, payload) => apiRequest(`/api/organization/units/${unitId}/employees`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
+  updateEmployee: (id, payload) => apiRequest(`/api/organization/employees/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }),
+  deactivateEmployee: (id) => apiRequest(`/api/organization/employees/${id}`, {
+    method: 'DELETE',
+  }),
   createUnit: (payload) => apiRequest('/api/organization/units', {
     method: 'POST',
     body: JSON.stringify(payload),
