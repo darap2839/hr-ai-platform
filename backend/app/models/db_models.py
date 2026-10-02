@@ -111,12 +111,28 @@ class OrganizationEmployeeModel(Base):
     email = Column(String(255), nullable=True)
     phone = Column(String(50), nullable=True)
     location = Column(String(255), nullable=True)
+    manager_id = Column(
+        Integer,
+        ForeignKey("organization_employees.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     is_manager = Column(Boolean, nullable=False, default=False, index=True)
     is_active = Column(Boolean, nullable=False, default=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     unit = relationship("OrganizationUnitModel", back_populates="employees")
+    manager = relationship(
+        "OrganizationEmployeeModel",
+        remote_side=[id],
+        back_populates="subordinates",
+    )
+    subordinates = relationship(
+        "OrganizationEmployeeModel",
+        back_populates="manager",
+        foreign_keys=[manager_id],
+    )
 
 
 class VacancyModel(Base):
