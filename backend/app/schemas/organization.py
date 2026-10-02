@@ -39,6 +39,7 @@ class OrganizationUnitUpdate(BaseModel):
 class OrganizationUnitResponse(OrganizationUnitBase):
     id: int
     is_active: bool
+    manager_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     children: List["OrganizationUnitResponse"] = Field(default_factory=list)
@@ -56,6 +57,7 @@ class OrganizationEmployeeBase(BaseModel):
     email: Optional[str] = Field(default=None, max_length=255)
     phone: Optional[str] = Field(default=None, max_length=50)
     location: Optional[str] = Field(default=None, max_length=255)
+    manager_id: Optional[int] = None
     is_manager: bool = False
 
 
@@ -70,6 +72,7 @@ class OrganizationEmployeeUpdate(BaseModel):
     email: Optional[str] = Field(default=None, max_length=255)
     phone: Optional[str] = Field(default=None, max_length=50)
     location: Optional[str] = Field(default=None, max_length=255)
+    manager_id: Optional[int] = None
     is_manager: Optional[bool] = None
     is_active: Optional[bool] = None
 
