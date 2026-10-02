@@ -7,7 +7,7 @@ const unitTypeLabels = { company: 'Компания', directorate: 'Управл
 const initials = (name) => name.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
 const emptyEmployee = { full_name: '', position: '', email: '', phone: '', location: '', is_manager: false };
 
-function EmployeeCard({ employee, manager = false, onEdit }) {
+function EmployeeCard({ employee, manager = false, onEdit, managerName }) {
   return (
     <article className={manager ? 'organization-manager-card' : 'organization-employee-card'}>
       <div className="organization-employee-avatar">{initials(employee.full_name)}</div>
@@ -18,6 +18,7 @@ function EmployeeCard({ employee, manager = false, onEdit }) {
           {employee.email && <a href={`mailto:${employee.email}`}><Mail size={13} /> {employee.email}</a>}
           {employee.phone && <a href={`tel:${employee.phone}`}><Phone size={13} /> {employee.phone}</a>}
           {employee.location && <span><MapPin size={13} /> {employee.location}</span>}
+          {!manager && managerName && <span><UserRound size={13} /> Руководитель: {managerName}</span>}
         </div>
       </div>
       <div className="organization-employee-actions">
@@ -74,13 +75,29 @@ export default function OrganizationUnitDetail() {
   const openEmployeeCreator = () => { setEditingEmployee(null); setEmployeeForm({ ...emptyEmployee }); setEmployeeModalOpen(true); };
   const openEmployeeEditor = (employee) => {
     setEditingEmployee(employee);
-    setEmployeeForm({ full_name: employee.full_name, position: employee.position, email: employee.email || '', phone: employee.phone || '', location: employee.location || '', is_manager: employee.is_manager });
+    setEmployeeForm({
+      full_name: employee.full_name,
+      position: employee.position,
+      email: employee.email || '',
+      phone: employee.phone || '',
+      location: employee.location || '',
+      manager_id: employee.manager_id || '',
+      is_manager: employee.is_manager,
+    });
     setEmployeeModalOpen(true);
   };
 
   const saveEmployee = async (event) => {
     event.preventDefault(); setSaving(true); setError('');
-    const payload = { full_name: employeeForm.full_name.trim(), position: employeeForm.position.trim(), email: employeeForm.email.trim() || null, phone: employeeForm.phone.trim() || null, location: employeeForm.location.trim() || null, is_manager: employeeForm.is_manager };
+    const payload = {
+      full_name: employeeForm.full_name.trim(),
+      position: employeeForm.position.trim(),
+      email: employeeForm.email.trim() || null,
+      phone: employeeForm.phone.trim() || null,
+      location: employeeForm.location.trim() || null,
+      manager_id: employeeForm.manager_id ? Number(employeeForm.manager_id) : null,
+      is_manager: employeeForm.is_manager,
+    };
     try {
       if (editingEmployee) await organizationApi.updateEmployee(editingEmployee.id, payload);
       else await organizationApi.createEmployee(id, payload);
@@ -96,6 +113,7 @@ export default function OrganizationUnitDetail() {
 
   const manager = employees.find(employee => employee.is_manager);
   const team = employees.filter(employee => !employee.is_manager);
+  const managerNames = new Map(employees.map(employee => [employee.id, employee.full_name]));
 
   return (
     <div className="page-container organization-detail-page">
@@ -111,7 +129,7 @@ export default function OrganizationUnitDetail() {
       </section>
       <section className="organization-section">
         <div className="organization-section-header"><h2><Users size={20} /> Сотрудники</h2><div className="organization-section-actions"><span>{employees.length} сотрудников</span><button type="button" className="primary-button" onClick={openEmployeeCreator}><Plus size={17} /> Добавить сотрудника</button></div></div>
-        {team.length > 0 ? <div className="organization-employees-grid">{team.map(employee => <EmployeeCard key={employee.id} employee={employee} onEdit={openEmployeeEditor} />)}</div> : <div className="organization-directory-empty">Сотрудники пока не добавлены</div>}
+        {team.length > 0 ? <div className="organization-employees-grid">{team.map(employee => <EmployeeCard key={employee.id} employee={employee} onEdit={openEmployeeEditor} managerName={managerNames.get(employee.manager_id)} />)}</div> : <div className="organization-directory-empty">Сотрудники пока не добавлены</div>}
       </section>
       {editUnitOpen && (
         <div className="modal-overlay" onClick={closeModals}><form className="modal-content organization-modal" onSubmit={saveUnit} onClick={event => event.stopPropagation()}>
@@ -132,6 +150,7 @@ export default function OrganizationUnitDetail() {
             <div className="form-group"><label htmlFor="employee-position">Должность *</label><input id="employee-position" required value={employeeForm.position} onChange={event => setEmployeeForm({ ...employeeForm, position: event.target.value })} /></div>
             <div className="organization-form-row"><div className="form-group"><label htmlFor="employee-email">Рабочий email</label><input id="employee-email" type="email" value={employeeForm.email} onChange={event => setEmployeeForm({ ...employeeForm, email: event.target.value })} /></div><div className="form-group"><label htmlFor="employee-phone">Рабочий телефон</label><input id="employee-phone" value={employeeForm.phone} onChange={event => setEmployeeForm({ ...employeeForm, phone: event.target.value })} /></div></div>
             <div className="form-group"><label htmlFor="employee-location">Местоположение</label><input id="employee-location" placeholder="Например, Москва или офис 305" value={employeeForm.location} onChange={event => setEmployeeForm({ ...employeeForm, location: event.target.value })} /></div>
+            <div className="form-group"><label htmlFor="employee-manager">Руководитель</label><select id="employee-manager" value={employeeForm.manager_id} onChange={event => setEmployeeForm({ ...employeeForm, manager_id: event.target.value })}><option value="">Не назначен</option>{employees.filter(employee => employee.id !== editingEmployee?.id).map(employee => <option key={employee.id} value={employee.id}>{employee.full_name} — {employee.position}</option>)}</select></div>
             <label className="organization-inactive-toggle"><input type="checkbox" checked={employeeForm.is_manager} onChange={event => setEmployeeForm({ ...employeeForm, is_manager: event.target.checked })} /> Назначить руководителем отдела</label>
           </div>
           <div className="form-actions organization-modal-actions"><button type="button" className="secondary-button" onClick={closeModals}>Отмена</button><button type="submit" className="primary-button" disabled={saving}>{saving ? 'Сохранение...' : (editingEmployee ? 'Сохранить' : 'Добавить')}</button></div>
