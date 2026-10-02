@@ -244,8 +244,6 @@ def create_organization_employee(
                 status_code=400,
                 detail="Руководитель должен быть активным сотрудником этого подразделения",
             )
-        if manager_id == None:
-            payload_data["manager_id"] = None
     employee = OrganizationEmployeeModel(unit_id=unit_id, **payload_data)
     db.add(employee)
     db.commit()
@@ -274,20 +272,23 @@ def update_organization_employee(
         get_active_unit(db, target_unit_id)
     if changes.get("is_manager", employee.is_manager):
         clear_unit_manager(db, target_unit_id, exclude_id=employee.id)
-    if "manager_id" in changes:
-        manager_id = changes["manager_id"]
-        if manager_id is not None:
-            manager = db.query(OrganizationEmployeeModel).filter(
-                OrganizationEmployeeModel.id == manager_id,
-                OrganizationEmployeeModel.unit_id == target_unit_id,
-                OrganizationEmployeeModel.is_active == True,
-                OrganizationEmployeeModel.id != employee.id,
-            ).first()
-            if not manager:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Руководитель должен быть активным сотрудником этого подразделения",
-                )
+
+    manager_id = changes.get("manager_id", employee.manager_id)
+    if manager_id is not None:
+        manager = db.query(OrganizationEmployeeModel).filter(
+            OrganizationEmployeeModel.id == manager_id,
+            OrganizationEmployeeModel.unit_id == target_unit_id,
+            OrganizationEmployeeModel.is_active == True,
+            OrganizationEmployeeModel.id != employee.id,
+        ).first()
+        if not manager:
+            raise HTTPException(
+                status_code=400,
+                detail="Руководитель должен быть активным сотрудником этого подразделения",
+            )
+    elif "manager_id" not in changes and target_unit_id != employee.unit_id:
+        changes["manager_id"] = None
+
     for field, value in changes.items():
         setattr(employee, field, value)
     db.commit()
@@ -311,6 +312,13 @@ def deactivate_organization_employee(
         raise HTTPException(status_code=404, detail="Organization employee not found")
     employee.is_active = False
     employee.is_manager = False
+    db.query(OrganizationEmployeeModel).filter(
+        OrganizationEmployeeModel.manager_id == employee.id,
+        OrganizationEmployeeModel.is_active == True,
+    ).update(
+        {OrganizationEmployeeModel.manager_id: None},
+        synchronize_session=False,
+    )
     db.commit()
     db.refresh(employee)
     return employee
