@@ -231,7 +231,22 @@ def create_organization_employee(
     get_active_unit(db, unit_id)
     if payload.is_manager:
         clear_unit_manager(db, unit_id)
-    employee = OrganizationEmployeeModel(unit_id=unit_id, **payload.model_dump())
+    payload_data = payload.model_dump()
+    manager_id = payload_data.get("manager_id")
+    if manager_id is not None:
+        manager = db.query(OrganizationEmployeeModel).filter(
+            OrganizationEmployeeModel.id == manager_id,
+            OrganizationEmployeeModel.unit_id == unit_id,
+            OrganizationEmployeeModel.is_active == True,
+        ).first()
+        if not manager:
+            raise HTTPException(
+                status_code=400,
+                detail="Руководитель должен быть активным сотрудником этого подразделения",
+            )
+        if manager_id == None:
+            payload_data["manager_id"] = None
+    employee = OrganizationEmployeeModel(unit_id=unit_id, **payload_data)
     db.add(employee)
     db.commit()
     db.refresh(employee)
@@ -259,6 +274,20 @@ def update_organization_employee(
         get_active_unit(db, target_unit_id)
     if changes.get("is_manager", employee.is_manager):
         clear_unit_manager(db, target_unit_id, exclude_id=employee.id)
+    if "manager_id" in changes:
+        manager_id = changes["manager_id"]
+        if manager_id is not None:
+            manager = db.query(OrganizationEmployeeModel).filter(
+                OrganizationEmployeeModel.id == manager_id,
+                OrganizationEmployeeModel.unit_id == target_unit_id,
+                OrganizationEmployeeModel.is_active == True,
+                OrganizationEmployeeModel.id != employee.id,
+            ).first()
+            if not manager:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Руководитель должен быть активным сотрудником этого подразделения",
+                )
     for field, value in changes.items():
         setattr(employee, field, value)
     db.commit()
