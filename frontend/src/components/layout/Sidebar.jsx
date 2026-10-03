@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BarChart3, Briefcase, CalendarDays, HelpCircle, Menu, Users, BookOpen, Network, ChevronDown } from 'lucide-react';
+import { BarChart3, Briefcase, CalendarDays, HelpCircle, Menu, Users, BookOpen, Network, ChevronDown, ArrowLeft, LayoutGrid } from 'lucide-react';
 
 export default function Sidebar({ user, isOpen, onToggle }) {
   const navigate = useNavigate();
@@ -26,11 +26,12 @@ export default function Sidebar({ user, isOpen, onToggle }) {
     { label: 'Поддержка', icon: HelpCircle, path: '/support', id: 'nav-support' },
   ];
 
-  const departmentActive = location.pathname === '/organization' && location.search.startsWith('?department=');
+  const isDirectory = location.pathname === '/organization';
+  const selectedDepartment = new URLSearchParams(location.search).get('department') || '';
 
   const isActive = (path) => {
     if (path === '/vacancies') return location.pathname === '/vacancies' || location.pathname === '/';
-    return location.pathname === path || (path === '/organization' && departmentActive);
+    return location.pathname === path;
   };
 
   return (
@@ -65,29 +66,39 @@ export default function Sidebar({ user, isOpen, onToggle }) {
         <small id="profile-login">{user?.login || 'depopova'}</small>
       </div>
 
-      <nav className="nav-section" id="sidebar-nav" aria-label="Основная навигация">
-        <p id="nav-section-label">основное</p>
-        {navItems.map(({ label, icon: Icon, path, id }) => (
+      {isDirectory ? (
+        <nav className="nav-section sidebar-directory-nav" id="sidebar-nav" aria-label="Навигация справочника">
+          <p id="nav-section-label">справочник</p>
+
           <button
-            key={path}
-            id={id}
-            className={`nav-item ${isActive(path) ? 'active' : ''}`}
-            onClick={() => navigate(path)}
-            title={!isOpen ? label : undefined}
             type="button"
+            className="directory-sidebar-back"
+            onClick={() => navigate('/vacancies')}
           >
-            <Icon size={18} />
-            <span className="nav-label">{label}</span>
+            <ArrowLeft size={17} />
+            <span className="nav-label">Все разделы</span>
           </button>
-        ))}
-        {isOpen && location.pathname.startsWith('/organization') && (
+
+          <button
+            type="button"
+            className={`directory-sidebar-all ${!selectedDepartment ? 'active' : ''}`}
+            onClick={() => navigate('/organization')}
+          >
+            <LayoutGrid size={17} />
+            <span className="nav-label">Все сотрудники</span>
+          </button>
+
           <div className="sidebar-departments">
-            <div className="sidebar-subnav-title"><span>отделы</span><ChevronDown size={14} /></div>
+            <div className="sidebar-subnav-title">
+              <span>отделы</span>
+              <ChevronDown size={14} />
+            </div>
+
             {departments.map((department) => (
               <button
                 key={department}
                 type="button"
-                className={`sidebar-department-item ${new URLSearchParams(location.search).get('department') === department ? 'active' : ''}`}
+                className={`sidebar-department-item ${selectedDepartment === department ? 'active' : ''}`}
                 onClick={() => navigate(`/organization?department=${encodeURIComponent(department)}`)}
               >
                 <span className="sidebar-department-dot" />
@@ -95,8 +106,25 @@ export default function Sidebar({ user, isOpen, onToggle }) {
               </button>
             ))}
           </div>
-        )}
-      </nav>
+        </nav>
+      ) : (
+        <nav className="nav-section" id="sidebar-nav" aria-label="Основная навигация">
+          <p id="nav-section-label">основное</p>
+          {navItems.map(({ label, icon: Icon, path, id }) => (
+            <button
+              key={path}
+              id={id}
+              className={`nav-item ${isActive(path) ? 'active' : ''}`}
+              onClick={() => navigate(path)}
+              title={!isOpen ? label : undefined}
+              type="button"
+            >
+              <Icon size={18} />
+              <span className="nav-label">{label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
     </aside>
   );
 }
