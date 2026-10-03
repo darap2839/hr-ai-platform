@@ -1,9 +1,20 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BarChart3, Briefcase, CalendarDays, HelpCircle, Menu, Users, BookOpen, Network } from 'lucide-react';
+import { BarChart3, Briefcase, CalendarDays, HelpCircle, Menu, Users, BookOpen, Network, ChevronDown } from 'lucide-react';
 
 export default function Sidebar({ user, isOpen, onToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const departments = [
+    'Конструкторский отдел',
+    'Отдел разработки',
+    'Производственный отдел',
+    'Отдел радиоэлектронных систем',
+    'Отдел испытаний и качества',
+    'Отдел снабжения',
+    'Отдел кадров',
+    'ИТ-отдел',
+  ];
 
   const navItems = [
     { label: 'Вакансии', icon: Briefcase, path: '/vacancies', id: 'nav-vacancies' },
@@ -15,9 +26,11 @@ export default function Sidebar({ user, isOpen, onToggle }) {
     { label: 'Поддержка', icon: HelpCircle, path: '/support', id: 'nav-support' },
   ];
 
+  const departmentActive = location.pathname === '/organization' && location.search.startsWith('?department=');
+
   const isActive = (path) => {
     if (path === '/vacancies') return location.pathname === '/vacancies' || location.pathname === '/';
-    return location.pathname === path;
+    return location.pathname === path || (path === '/organization' && departmentActive);
   };
 
   return (
@@ -67,6 +80,22 @@ export default function Sidebar({ user, isOpen, onToggle }) {
             <span className="nav-label">{label}</span>
           </button>
         ))}
+        {isOpen && location.pathname.startsWith('/organization') && (
+          <div className="sidebar-departments">
+            <div className="sidebar-subnav-title"><span>отделы</span><ChevronDown size={14} /></div>
+            {departments.map((department) => (
+              <button
+                key={department}
+                type="button"
+                className={`sidebar-department-item ${new URLSearchParams(location.search).get('department') === department ? 'active' : ''}`}
+                onClick={() => navigate(`/organization?department=${encodeURIComponent(department)}`)}
+              >
+                <span className="sidebar-department-dot" />
+                <span>{department}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </nav>
     </aside>
   );
