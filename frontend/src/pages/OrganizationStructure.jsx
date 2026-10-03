@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Mail, MapPin, Phone, Search, Users, X } from 'lucide-react';
 
 const mockEmployees = [
@@ -36,26 +37,31 @@ function EmployeeCard({ employee }) {
 
 export default function OrganizationStructure() {
   const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const selectedDepartment = searchParams.get('department') || '';
   const normalizedSearch = search.trim().toLowerCase();
 
   const employees = useMemo(() => {
-    if (!normalizedSearch) return mockEmployees;
-    return mockEmployees.filter((employee) =>
+    const departmentEmployees = selectedDepartment
+      ? mockEmployees.filter((employee) => employee.department === selectedDepartment)
+      : mockEmployees;
+    if (!normalizedSearch) return departmentEmployees;
+    return departmentEmployees.filter((employee) =>
       [employee.full_name, employee.position, employee.department, employee.email, employee.phone, employee.location]
         .some((value) => value.toLowerCase().includes(normalizedSearch))
     );
-  }, [normalizedSearch]);
+  }, [normalizedSearch, selectedDepartment]);
 
   return (
     <div className="page-container organization-page">
       <div className="page-header">
         <div>
           <h1><Users size={25} /> Справочник</h1>
-          <p>Сотрудники компании и рабочие контакты</p>
+          <p>{selectedDepartment || 'Сотрудники компании и рабочие контакты'}</p>
         </div>
         <div className="directory-employee-count">
-          <strong>{mockEmployees.length}</strong>
-          <span>сотрудников</span>
+          <strong>{employees.length}</strong>
+          <span>{selectedDepartment ? 'в отделе' : 'сотрудников'}</span>
         </div>
       </div>
 
@@ -71,7 +77,7 @@ export default function OrganizationStructure() {
       <section className="directory-employees-section">
         <div className="directory-section-heading">
           <div>
-            <h2>{search ? 'Результаты поиска' : 'Сотрудники'}</h2>
+            <h2>{selectedDepartment ? selectedDepartment : (search ? 'Результаты поиска' : 'Сотрудники')}</h2>
             <p>{employees.length} {employees.length === 1 ? 'сотрудник' : 'сотрудников'}</p>
           </div>
         </div>
