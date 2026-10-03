@@ -65,84 +65,18 @@
 .organization-employees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
 .organization-directory-empty { border: 1px dashed #cbd5e1; border-radius: 14px; padding: 24px; color: #64748b; text-align: center; }
 
-/* Corporate directory landing */
-.organization-directory-toolbar {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) auto auto;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 20px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-  padding: 14px 16px;
-}
-
-.organization-directory-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  border: 1px solid #dbe3ed;
-  border-radius: 12px;
-  background: #f8fafc;
-  padding: 0 10px 0 14px;
-  color: #94a3b8;
-}
-
-.organization-directory-search:focus-within { border-color: #93c5fd; background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08); }
-.organization-directory-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #172033; font: inherit; }
-.organization-directory-summary { display: grid; min-width: 105px; gap: 1px; border-left: 1px solid var(--line); padding-left: 18px; }
-.organization-directory-summary strong { font-size: 18px; color: #172033; }
-.organization-directory-summary span { color: #64748b; font-size: 12px; }
-
-.organization-directory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.organization-directory-card { position: relative; display: flex; min-height: 178px; border: 1px solid #e1e7ef; border-radius: 18px; background: #fff; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; }
-.organization-directory-card:hover { border-color: #bfdbfe; box-shadow: 0 12px 30px rgba(15, 23, 42, .07); transform: translateY(-1px); }
-.organization-directory-card.inactive { opacity: .68; background: #f8fafc; }
-.organization-directory-main { display: flex; flex: 1; gap: 16px; border: 0; background: transparent; padding: 22px; text-align: left; cursor: pointer; }
-.organization-directory-icon { display: grid; flex: 0 0 auto; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: #eaf4ff; color: var(--blue); }
-.organization-directory-content { min-width: 0; }
-.organization-directory-title-row { display: flex; align-items: center; gap: 8px; }
-.organization-directory-title-row h2 { margin: 0; color: #172033; font-size: 18px; line-height: 1.35; }
-.organization-directory-title-row svg { flex: 0 0 auto; color: #94a3b8; }
-.organization-directory-type { display: inline-flex; margin-top: 8px; border-radius: 999px; background: #f1f5f9; padding: 4px 9px; color: #64748b; font-size: 11px; font-weight: 800; }
-.organization-directory-content p { display: -webkit-box; overflow: hidden; margin: 10px 0 0; color: #64748b; font-size: 13px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.organization-directory-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-.organization-directory-meta span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; font-size: 12px; font-weight: 700; }
-.organization-directory-actions { display: flex; align-items: flex-start; gap: 4px; padding: 16px 12px 0 0; }
-.organization-directory-actions .icon-button { color: #64748b; }
-.organization-directory-actions .organization-disable { color: #dc2626; }
-.organization-empty { display: grid; place-items: center; min-height: 360px; text-align: center; }
-.organization-empty-icon { display: grid; place-items: center; width: 74px; height: 74px; margin-bottom: 12px; border-radius: 22px; background: #eaf4ff; color: var(--blue); }
-.organization-empty h2 { margin: 0; color: #172033; font-size: 22px; }
-.organization-empty p { max-width: 500px; margin: 8px 0 20px; color: #64748b; line-height: 1.5; }
-
-@media (max-width: 900px) {
-  .organization-directory-grid { grid-template-columns: 1fr; }
-  .organization-directory-toolbar { grid-template-columns: 1fr auto; }
-  .organization-directory-search { grid-column: 1 / -1; }
-}
-
-@media (max-width: 640px) {
-  .organization-toolbar, .organization-page .page-header { align-items: stretch; flex-direction: column; }
-  .organization-page .page-header .primary-button { width: 100%; }
-  .organization-tree { padding: 10px; }
-  .organization-node { grid-template-columns: 26px 36px minmax(0, 1fr); }
-  .organization-node-icon { width: 36px; height: 36px; }
-  .organization-node-actions { grid-column: 2 / -1; justify-content: flex-end; }
-  .organization-children { margin-left: 14px; padding-left: 10px; }
-  .organization-detail-hero { flex-direction: column; padding: 18px; }
-  .organization-detail-edit { width: 100%; }
-  .organization-section-header, .organization-section-actions { align-items: stretch; flex-direction: column; }
-  .organization-section-actions .primary-button { width: 100%; }
-  .organization-contact-list { min-width: 0; }
-  .organization-section { padding: 18px; }
-  .organization-employees-grid { grid-template-columns: 1fr; }
-  .organization-form-row { grid-template-columns: 1fr; }
-  .organization-directory-toolbar { grid-template-columns: 1fr; }
-  .organization-directory-summary { border-left: 0; border-top: 1px solid var(--line); padding: 12px 0 0; }
-  .organization-directory-main { padding: 18px; }
-  .organization-directory-card { min-height: 0; }
-  .organization-directory-actions { padding-right: 8px; }
-}
+/* Employee directory landing */
+.directory-employee-count{display:flex;align-items:baseline;gap:7px;color:#64748b}
+.directory-employee-count strong{color:#172033;font-size:22px}.directory-employee-count span{font-size:13px}
+.directory-search-panel{margin-bottom:20px}.directory-search{display:flex;align-items:center;gap:11px;min-height:52px;border:1px solid #dbe3ed;border-radius:15px;background:#fff;padding:0 12px 0 17px;color:#94a3b8;box-shadow:0 4px 18px rgba(15,23,42,.03)}
+.directory-search:focus-within{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.08)}.directory-search input{width:100%;border:0;outline:0;background:transparent;color:#172033;font:inherit}
+.directory-employees-section{border:1px solid var(--line);border-radius:18px;background:#fff;padding:22px}.directory-section-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.directory-section-heading h2{margin:0;color:#172033;font-size:20px}.directory-section-heading p{margin:5px 0 0;color:#64748b;font-size:13px}
+.directory-employees-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.directory-employee-card{display:flex;gap:15px;min-width:0;border:1px solid #e2e8f0;border-radius:15px;background:#fff;padding:18px;transition:border-color .2s,box-shadow .2s,transform .2s}
+.directory-employee-card:hover{border-color:#bfdbfe;box-shadow:0 10px 25px rgba(15,23,42,.06);transform:translateY(-1px)}.directory-employee-avatar{display:grid;flex:0 0 auto;place-items:center;width:56px;height:56px;border-radius:16px;background:#eaf4ff;color:var(--blue);font-size:17px;font-weight:900}
+.directory-employee-body{min-width:0;flex:1}.directory-employee-heading h2{overflow:hidden;margin:0;color:#172033;font-size:16px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}.directory-employee-heading p{overflow:hidden;margin:4px 0 0;color:#64748b;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.directory-employee-department{display:inline-flex;margin-top:10px;border-radius:999px;background:#f1f5f9;padding:4px 9px;color:#475569;font-size:11px;font-weight:800}.directory-employee-contacts{display:grid;gap:6px;margin-top:12px}
+.directory-employee-contacts a,.directory-employee-contacts span{display:flex;align-items:center;min-width:0;gap:7px;overflow:hidden;color:#64748b;font-size:12px;text-decoration:none;text-overflow:ellipsis;white-space:nowrap}.directory-employee-contacts a:hover{color:var(--blue)}
+.directory-empty{display:grid;place-items:center;min-height:280px;border:1px dashed #cbd5e1;border-radius:15px;text-align:center}.directory-empty-icon{display:grid;place-items:center;width:58px;height:58px;margin-bottom:10px;border-radius:17px;background:#eaf4ff;color:var(--blue)}
+.directory-empty h2{margin:0;color:#172033;font-size:19px}.directory-empty p{margin:7px 0 0;color:#64748b;font-size:13px}
+@media (max-width:900px){.directory-employees-grid{grid-template-columns:1fr}}@media (max-width:640px){.directory-employee-count{display:none}.directory-employees-section{padding:16px}.directory-employee-card{padding:15px}}
