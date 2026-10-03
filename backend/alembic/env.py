@@ -21,6 +21,12 @@ target_metadata = Base.metadata
 # Override sqlalchemy.url with environment variable if available
 database_url = os.getenv("DATABASE_URL")
 if database_url:
+    # The project installs psycopg2-binary, not psycopg (v3).
+    # Alembic uses engine_from_config directly, so normalize the URL here too.
+    if database_url.startswith("postgresql://"):
+        database_url = database_url.replace(
+            "postgresql://", "postgresql+psycopg2://", 1
+        )
     config.set_main_option("sqlalchemy.url", database_url)
 
 
