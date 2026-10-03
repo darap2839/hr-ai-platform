@@ -33,6 +33,38 @@ services:
       - qdrant
       - keycloak
 
+  ai-engine:
+    build:
+      context: ./ai-engine
+    profiles:
+      - ai
+    environment:
+      AI_MODEL: ${AI_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
+    volumes:
+      - ./data/ai-models:/models
+    command:
+      - serve
+      - --model
+      - ${AI_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --device
+      - cpu
+      - --max-tokens
+      - "256"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   frontend:
     image: ghcr.io/darap2839/hr-ai-platform/frontend:master
     pull_policy: always
@@ -96,8 +128,6 @@ services:
     volumes:
       - ./keycloak/realm:/opt/keycloak/data/import:ro
       - ./keycloak/themes:/opt/keycloak/themes:ro
-#    ports:
-#      - "127.0.0.1:8080:8080"
 
   minio:
     image: minio/minio:latest
