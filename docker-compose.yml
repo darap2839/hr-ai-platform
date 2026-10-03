@@ -16,6 +16,7 @@ services:
       WEAVIATE_URL: http://weaviate:8080
       OLLAMA_BASE_URL: http://ollama:11434
       MINERU_URL: http://mineru:30000
+      AI_ENGINE_URL: http://ai-engine:8000
       AUTH_MODE: keycloak
       KEYCLOAK_URL: http://localhost/auth
       KEYCLOAK_REALM: platform

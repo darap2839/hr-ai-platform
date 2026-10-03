@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     keycloak_url: str = Field(default="http://keycloak:8080", alias="KEYCLOAK_URL")
     keycloak_realm: str = Field(default="hr-ai", alias="KEYCLOAK_REALM")
     keycloak_client_id: str = Field(default="hr-ai-frontend", alias="KEYCLOAK_CLIENT_ID")
+    ai_engine_url: str = Field(default="http://ai-engine:8000", alias="AI_ENGINE_URL")
 
     class Config:
         populate_by_name = True
