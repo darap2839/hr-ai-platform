@@ -10,6 +10,12 @@ const mockEmployees = [
   { id: 5, full_name: 'Волков Сергей Игоревич', position: 'Начальник конструкторского отдела', department: 'Конструкторский отдел', email: 's.volkov@company.local', phone: '+7 (495) 100-10-31', location: 'Москва, корпус Б' },
   { id: 6, full_name: 'Морозова Елена Павловна', position: 'Инженер-конструктор', department: 'Конструкторский отдел', email: 'e.morozova@company.local', phone: '+7 (495) 100-10-32', location: 'Москва, корпус Б' },
   { id: 7, full_name: 'Орлов Никита Романович', position: 'Системный администратор', department: 'ИТ-отдел', email: 'n.orlov@company.local', phone: '+7 (495) 100-10-41', location: 'Москва, офис 110' },
+  { id: 9, full_name: 'Фёдоров Артём Викторович', position: 'Начальник производственного отдела', department: 'Производственный отдел', email: 'a.fedorov@company.local', phone: '+7 (495) 100-10-61', location: 'Москва, производственный корпус' },
+  { id: 10, full_name: 'Беляева Ирина Дмитриевна', position: 'Инженер по качеству', department: 'Отдел испытаний и качества', email: 'i.belyaeva@company.local', phone: '+7 (495) 100-10-71', location: 'Москва, испытательный корпус' },
+  { id: 11, full_name: 'Романов Кирилл Андреевич', position: 'Ведущий инженер по радиоэлектронным системам', department: 'Отдел радиоэлектронных систем', email: 'k.romanov@company.local', phone: '+7 (495) 100-10-81', location: 'Москва, корпус В' },
+  { id: 12, full_name: 'Громова Наталья Сергеевна', position: 'Инженер-технолог', department: 'Производственный отдел', email: 'n.gromova@company.local', phone: '+7 (495) 100-10-62', location: 'Москва, производственный корпус' },
+  { id: 13, full_name: 'Лебедев Максим Ильич', position: 'Инженер по испытаниям', department: 'Отдел испытаний и качества', email: 'm.lebedev@company.local', phone: '+7 (495) 100-10-72', location: 'Москва, испытательный корпус' },
+  { id: 14, full_name: 'Захаров Павел Алексеевич', position: 'Инженер-схемотехник', department: 'Отдел радиоэлектронных систем', email: 'p.zakharov@company.local', phone: '+7 (495) 100-10-82', location: 'Москва, корпус В' },
   { id: 8, full_name: 'Соколова Ольга Максимовна', position: 'Специалист по закупкам', department: 'Отдел снабжения', email: 'o.sokolova@company.local', phone: '+7 (495) 100-10-51', location: 'Москва, офис 215' },
 ];
 
