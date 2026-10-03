@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Mail, MapPin, Phone, Search, Users, X } from 'lucide-react';
+import { Mail, MapPin, Phone, Search, Users, X, Building2, BriefcaseBusiness, Hash, CircleCheck, CircleX } from 'lucide-react';
 
 const mockEmployees = [
   { id: 1, full_name: 'Иванов Алексей Сергеевич', position: 'Генеральный директор', department: 'Руководство', email: 'a.ivanov@company.local', phone: '+7 (495) 100-10-01', location: 'Москва, офис 301' },
@@ -21,28 +21,62 @@ const mockEmployees = [
 
 const initials = (name) => name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
-function EmployeeCard({ employee }) {
+function EmployeeCard({ employee, onOpen }) {
+  const active = employee.id !== 13;
   return (
-    <article className="directory-employee-card">
+    <button type="button" className="directory-employee-card" onClick={() => onOpen(employee)}>
       <div className="directory-employee-avatar">{initials(employee.full_name)}</div>
       <div className="directory-employee-body">
-        <div className="directory-employee-heading">
-          <h2>{employee.full_name}</h2>
-          <p>{employee.position}</p>
-        </div>
+        <div className="directory-employee-heading"><h2>{employee.full_name}</h2><p>{employee.position}</p></div>
         <span className="directory-employee-department">{employee.department}</span>
         <div className="directory-employee-contacts">
-          <a href={`mailto:${employee.email}`}><Mail size={14} /> {employee.email}</a>
-          <a href={`tel:${employee.phone}`}><Phone size={14} /> {employee.phone}</a>
+          <span><Phone size={14} /> вн. {100 + employee.id}</span>
           <span><MapPin size={14} /> {employee.location}</span>
         </div>
       </div>
-    </article>
+      <span className={`directory-status-dot ${active ? 'active' : 'inactive'}`} title={active ? 'Активен' : 'Неактивен'} />
+    </button>
+  );
+}
+
+function EmployeeModal({ employee, onClose }) {
+  if (!employee) return null;
+  const active = employee.id !== 13;
+  return (
+    <div className="directory-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="directory-employee-modal" role="dialog" aria-modal="true" aria-labelledby="employee-modal-title">
+        <button type="button" className="directory-modal-close" onClick={onClose} aria-label="Закрыть"><X size={20} /></button>
+        <div className="directory-modal-profile">
+          <div className="directory-modal-avatar">{initials(employee.full_name)}</div>
+          <div>
+            <span className={`directory-modal-status ${active ? 'active' : 'inactive'}`}>
+              {active ? <CircleCheck size={14} /> : <CircleX size={14} />}{active ? 'Активен' : 'Неактивен'}
+            </span>
+            <h2 id="employee-modal-title">{employee.full_name}</h2>
+            <p>{employee.position}</p>
+          </div>
+        </div>
+        <div className="directory-modal-grid">
+          <div><BriefcaseBusiness size={18} /><span><small>Должность</small><strong>{employee.position}</strong></span></div>
+          <div><Building2 size={18} /><span><small>Отдел</small><strong>{employee.department}</strong></span></div>
+          <div><MapPin size={18} /><span><small>Рабочее место</small><strong>{employee.location}</strong></span></div>
+          <div><Hash size={18} /><span><small>Внутренний номер</small><strong>{100 + employee.id}</strong></span></div>
+          <div><Phone size={18} /><span><small>Телефон</small><strong>{employee.phone}</strong></span></div>
+          <div><Mail size={18} /><span><small>Рабочая почта</small><strong>{employee.email}</strong></span></div>
+        </div>
+        <div className="directory-modal-footer">
+          <a href={`mailto:${employee.email}`}><Mail size={16} /> Написать</a>
+          <a href={`tel:${employee.phone}`}><Phone size={16} /> Позвонить</a>
+        </div>
+      </section>
+      <EmployeeModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
+    </div>
   );
 }
 
 export default function OrganizationStructure() {
   const [search, setSearch] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchParams] = useSearchParams();
   const selectedDepartment = searchParams.get('department') || '';
   const normalizedSearch = search.trim().toLowerCase();
@@ -90,7 +124,7 @@ export default function OrganizationStructure() {
 
         {employees.length > 0 ? (
           <div className="directory-employees-grid">
-            {employees.map((employee) => <EmployeeCard key={employee.id} employee={employee} />)}
+            {employees.map((employee) => <EmployeeCard key={employee.id} employee={employee} onOpen={setSelectedEmployee} />)}
           </div>
         ) : (
           <div className="directory-empty">
