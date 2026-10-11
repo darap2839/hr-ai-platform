@@ -244,40 +244,46 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
 
   return (
     <div
-      className="modal-overlay"
-      onClick={onClose}
+      className={isEditing ? 'vacancy-editor-page' : 'modal-overlay'}
+      onClick={isEditing ? undefined : onClose}
       style={isEditing ? {
-        display: 'flex',
-        alignItems: 'stretch',
-        justifyContent: 'flex-end',
-        padding: 0,
-        background: 'rgba(15, 23, 42, 0.24)'
+        width: '100%',
+        minHeight: '100vh',
+        boxSizing: 'border-box',
+        padding: '24px clamp(16px, 3vw, 40px)',
+        background: '#f8fafc',
+        color: '#0f172a'
       } : undefined}
     >
       <div
-        className="modal-content"
-        onClick={e => e.stopPropagation()}
+        className={isEditing ? 'vacancy-editor-workspace' : 'modal-content'}
+        onClick={isEditing ? undefined : e => e.stopPropagation()}
         style={{
-          width: isEditing ? 'min(860px, 100vw)' : 'min(1100px, calc(100vw - 32px))',
-          maxWidth: 'none',
-          maxHeight: isEditing ? '100vh' : 'calc(100vh - 32px)',
-          minWidth: isEditing ? 'min(680px, 100vw)' : 'min(720px, calc(100vw - 32px))',
-          minHeight: isEditing ? '100vh' : 'min(600px, calc(100vh - 32px))',
-          height: isEditing ? '100vh' : 'auto',
-          borderRadius: isEditing ? '16px 0 0 16px' : undefined,
-          boxShadow: isEditing ? '-12px 0 36px rgba(15, 23, 42, 0.16)' : undefined,
-          overflow: 'auto',
-          resize: isEditing ? 'none' : 'both',
-          animation: isEditing ? 'vacancy-editor-drawer-in 180ms ease-out' : undefined
+          width: isEditing ? '100%' : 'min(1100px, calc(100vw - 32px))',
+          maxWidth: isEditing ? '1600px' : 'none',
+          margin: isEditing ? '0 auto' : undefined,
+          maxHeight: isEditing ? 'none' : 'calc(100vh - 32px)',
+          minWidth: isEditing ? 0 : 'min(720px, calc(100vw - 32px))',
+          minHeight: isEditing ? 'calc(100vh - 48px)' : 'min(600px, calc(100vh - 32px))',
+          height: isEditing ? 'auto' : 'auto',
+          borderRadius: isEditing ? '16px' : undefined,
+          border: isEditing ? '1px solid #e2e8f0' : undefined,
+          boxShadow: isEditing ? '0 8px 32px rgba(15, 23, 42, 0.06)' : undefined,
+          background: isEditing ? '#ffffff' : undefined,
+          overflow: isEditing ? 'visible' : 'auto',
+          resize: isEditing ? 'none' : 'both'
         }}
       >
-        <div className="modal-header">
-          <h2>{isEditing ? 'Редактирование вакансии' : 'Создание вакансии'}</h2>
-          <button className="icon-button" onClick={onClose}><X size={20} /></button>
+        <div className="modal-header" style={isEditing ? { padding: '20px 24px', borderBottom: '1px solid #e2e8f0' } : undefined}>
+          <div>
+            <h2>{isEditing ? 'Редактирование вакансии' : 'Создание вакансии'}</h2>
+            {isEditing && <p style={{ margin: '5px 0 0', color: '#64748b', fontSize: '14px' }}>Изменения попадут в вакансию только после сохранения</p>}
+          </div>
+          <button className="icon-button" onClick={onClose} title={isEditing ? 'Вернуться к вакансии' : 'Закрыть'}><X size={20} /></button>
         </div>
 
         {/* Progress Steps */}
-        <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        {!isEditing && <div style={{ padding: '20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {['Ввод данных', 'Проверка', 'Готово'].map((label, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -293,7 +299,7 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
               </div>
             ))}
           </div>
-        </div>
+        </div>}
 
         {/* Step 1: Input */}
         {step === 1 && (
@@ -359,13 +365,13 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
 
         {/* Step 2: Preview & Edit */}
         {step === 2 && (
-          <div style={{ padding: '24px' }}>
-            <h3 style={{ marginBottom: '16px' }}>{isEditing ? 'Редактируйте вакансию вручную или с помощью ИИ' : 'Проверьте данные вакансии'}</h3>
+          <div style={{ padding: isEditing ? '24px' : '24px' }}>
+            <h3 style={{ marginBottom: '16px' }}>{isEditing ? 'Данные вакансии' : 'Проверьте данные вакансии'}</h3>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isEditing ? 'minmax(0, 1.1fr) minmax(280px, 0.9fr)' : '1fr',
-              gap: '20px',
-              alignItems: 'start'
+              gridTemplateColumns: isEditing ? 'minmax(0, 1.15fr) minmax(300px, 0.85fr)' : '1fr',
+              gap: '24px',
+              alignItems: 'stretch'
             }}>
             <div style={{ display: 'grid', gap: '16px', minWidth: 0 }}>
               <div>
@@ -419,7 +425,7 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
               </div>
             </div>
             {isEditing && (
-              <div style={{ border: '1px solid #cbd5e1', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: 'min(60vh, 620px)', minHeight: '380px', minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ border: '1px solid #cbd5e1', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 300px)', minHeight: '480px', maxHeight: '900px', minWidth: 0, overflow: 'hidden', position: 'sticky', top: '16px' }}>
                 <div style={{ padding: '12px 14px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Sparkles size={17} color="#0b73ff" /> ИИ-помощник по вакансии
                 </div>
@@ -474,7 +480,7 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
         )}
 
         {/* Footer */}
-        <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', background: '#ffffff', borderRadius: isEditing ? '0 0 16px 16px' : undefined }}>
           {step > 1 && step < 3 ? (
             <button onClick={prevStep} className="secondary-button"><ArrowLeft size={18} /> Назад</button>
           ) : <div />}
