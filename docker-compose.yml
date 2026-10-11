@@ -41,13 +41,14 @@ services:
       - ai
     environment:
       AI_MODEL: ${AI_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
+      AI_MODEL_PATH: ${AI_MODEL_PATH:-/models/Qwen2.5-0.5B-Instruct}
     volumes:
       - ./data/ai-models:/models
     command:
       - soup
       - serve
       - --model
-      - ${AI_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
+      - ${AI_MODEL_PATH:-/models/Qwen2.5-0.5B-Instruct}
       - --host
       - 0.0.0.0
       - --port
