@@ -83,17 +83,20 @@ export default function VacancyDetailPage() {
     );
   }
 
+  if (showEditor) {
+    return (
+      <VacancyWizard
+        key={vacancy.id}
+        initialVacancy={vacancy}
+        isEditing
+        onClose={() => setShowEditor(false)}
+        onSave={handleSaveEdit}
+      />
+    );
+  }
+
   return (
     <div className="page-container">
-      {showEditor && (
-        <VacancyWizard
-          key={vacancy.id}
-          initialVacancy={vacancy}
-          isEditing
-          onClose={() => setShowEditor(false)}
-          onSave={handleSaveEdit}
-        />
-      )}
       {/* Header */}
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
