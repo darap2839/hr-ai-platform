@@ -22,63 +22,99 @@ export default function VacancyWizard({ onClose, onSave }) {
     }
   }, [chatMessages]);
 
-  const parseVacancyFromText = async (text) => {
+  const requestAI = async (messages, maxTokens = 256) => {
+    const response = await fetch('/api/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ messages, max_tokens: maxTokens })
+    });
+
+    if (!response.ok) {
+      let detail = '';
+      try {
+        const errorBody = await response.json();
+        detail = errorBody.detail || '';
+      } catch {
+        // Keep the user-facing error generic if the response is not JSON.
+      }
+      throw new Error(detail || `AI API вернул HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    const answer = result.choices?.[0]?.message?.content?.trim();
+    if (!answer) throw new Error('AI Engine вернул пустой ответ');
+    return answer;
+  };
+
+  const extractVacancy = async (text) => {
+    const answer = await requestAI([
+      {
+        role: 'system',
+        content: 'Ты помощник HR-платформы. Извлеки из сообщения данные вакансии и верни только один корректный JSON-объект без Markdown и пояснений. Поля: title, department, description, required_skills, salary_from, salary_to. Все значения должны быть строками. Если значение не указано, оставь пустую строку. Не придумывай зарплату, навыки или условия, которых нет в исходном тексте. Если должность указана, но отдел не указан, предложи логичный отдел на русском языке.'
+      },
+      { role: 'user', content: text }
+    ], 400);
+
+    const jsonText = answer.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonText) throw new Error('Не удалось получить структурированные данные вакансии от AI');
+    const parsed = JSON.parse(jsonText);
+    const result = {
+      title: String(parsed.title || ''),
+      department: String(parsed.department || ''),
+      description: String(parsed.description || ''),
+      required_skills: String(parsed.required_skills || ''),
+      salary_from: String(parsed.salary_from || ''),
+      salary_to: String(parsed.salary_to || '')
+    };
+    if (!result.title || !result.department) {
+      throw new Error('AI не смог определить название вакансии и отдел. Уточните описание и попробуйте ещё раз.');
+    }
+    setVacancy(result);
+    setChatMessages(prev => [...prev, {
+      type: 'bot',
+      text: 'Черновик вакансии подготовлен на основе вашего описания. Проверьте и при необходимости исправьте поля на следующем шаге.'
+    }]);
+    setStep(2);
+  };
+
+  const parseVacancyFromText = async (text, { createVacancy = false } = {}) => {
     setAiProcessing(true);
     try {
-      // MOCK DATA - В реальном проекте здесь будет вызов AI API
-      // Пока подставляем красивые данные для демонстрации
-      const mockVacancy = {
-        title: 'Middle Python Developer',
-        department: 'IT Development',
-        description: 'Мы ищем талантливого Python разработчика для участия в создании современных HR-технологий. \n\nОбязанности:\n- Разработка backend сервисов на FastAPI\n- Работа с PostgreSQL и Redis\n- Участие в code review\n- Написание unit и integration тестов\n\nМы предлагаем:\n- Удаленную работу\n- Интересные проекты\n- Профессиональный рост',
-        required_skills: 'Python, FastAPI, PostgreSQL, Docker, Git, REST API',
-        salary_from: '180000',
-        salary_to: '260000'
-      };
+      const answer = await requestAI([
+        {
+          role: 'system',
+          content: 'Ты русскоязычный помощник HR-платформы для предприятия радиоэлектронной отрасли. Отвечай грамотно, кратко и только на русском языке. Отвечай на вопрос пользователя по существу. Не утверждай, что анализировал файл или подготовил вакансию, если этого не делал.'
+        },
+        { role: 'user', content: text }
+      ]);
+      setChatMessages(prev => [...prev, { type: 'bot', text: answer }]);
 
-      // Если текст содержит ключевые слова, используем их для кастомизации мока
-      if (text.toLowerCase().includes('java')) {
-        mockVacancy.title = 'Senior Java Developer';
-        mockVacancy.required_skills = 'Java, Spring Boot, Microservices, PostgreSQL, Docker, Kubernetes';
-      } else if (text.toLowerCase().includes('frontend') || text.toLowerCase().includes('react')) {
-        mockVacancy.title = 'Frontend Developer (React)';
-        mockVacancy.required_skills = 'React, TypeScript, JavaScript, CSS, Redux, Webpack';
-      } else if (text.toLowerCase().includes('manager')) {
-        mockVacancy.title = 'Product Manager';
-        mockVacancy.department = 'Product';
-        mockVacancy.required_skills = 'Product Management, Agile, Scrum, Analytics, Jira';
+      const explicitVacancyRequest = /(?:создай|составь|подготовь|оформи)\s+(?:мне\s+)?ваканс|ваканси\w*\s+(?:для|на|по)/i.test(text);
+      if (createVacancy || explicitVacancyRequest) {
+        await extractVacancy(text);
       }
-
-      setVacancy(mockVacancy);
-
+    } catch (err) {
       setChatMessages(prev => [...prev, {
         type: 'bot',
-        text: '✨ Отлично! AI проанализировал ваш документ и подготовил вакансию. Проверьте данные на следующем шаге.'
+        text: `Не удалось получить ответ от AI. ${err.message || 'Проверьте, что AI Engine запущен, и попробуйте ещё раз.'}`
       }]);
-
-      setTimeout(() => setStep(2), 1200);
-    } catch (err) {
-      setChatMessages(prev => [...prev, { type: 'bot', text: 'Ошибка при обработке текста.' }]);
     } finally {
       setAiProcessing(false);
     }
   };
 
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
-    
-    const userMsg = chatInput;
+  const handleSendMessage = async () => {
+    const userMsg = chatInput.trim();
+    if (!userMsg || aiProcessing) return;
+
     setChatMessages(prev => [...prev, { type: 'user', text: userMsg }]);
     setChatInput('');
-
-    if (userMsg.length > 20) {
-      parseVacancyFromText(userMsg);
-    }
+    await parseVacancyFromText(userMsg);
   };
 
   const handleFileProcess = async (text) => {
     setChatMessages(prev => [...prev, { type: 'bot', text: '📁 Файл получен, обрабатываю...' }]);
-    await parseVacancyFromText(text);
+    await parseVacancyFromText(text, { createVacancy: true });
   };
 
   const handleDrag = (e) => {
@@ -183,8 +219,8 @@ export default function VacancyWizard({ onClose, onSave }) {
                     type="text"
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
-                    onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Напишите описание вакансии..."
+                    onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+                    placeholder="Задайте вопрос или опишите вакансию..."
                     style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                   <button onClick={handleSendMessage} className="primary-button" disabled={aiProcessing}>
