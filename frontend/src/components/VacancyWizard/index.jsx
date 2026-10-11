@@ -122,19 +122,39 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
   const handleEditWithAI = async (userMsg) => {
     setAiProcessing(true);
     try {
-      // Простые однозначные изменения обрабатываем без генеративной модели:
-      // небольшая локальная модель может ответить текстом, не вернув changes.
       const salaryRequest = /зарплат|оплат|оклад|salary|вилк/i.test(userMsg);
-      const normalizeAmount = value => value.replace(/[\\s\\u00a0]/g, '').replace(/[,](?=\\d{3}(?:\\D|$))/g, '');
-      const rangeMatch = userMsg.match(/(?:от\\s*)?(\\d[\\d\\s\\u00a0.,]*)\\s*(?:до|[-–—])\\s*(\\d[\\d\\s\\u00a0.,]*)/i);
+      const normalizeAmount = value => value.replace(/[\s\u00a0.,]/g, '');
+      const formatAmount = value => Number(value).toLocaleString('ru-RU');
+      const rangeMatch = userMsg.match(/(\d[\d\s\u00a0.,]*)\s*(?:до|[-–—])\s*(\d[\d\s\u00a0.,]*)/i);
+
+      // Однозначную зарплатную вилку применяем напрямую: локальная модель
+      // иногда возвращает шаблонный текст вместо JSON или некорректные числа.
       if (salaryRequest && rangeMatch) {
-        const from = normalizeAmount(rangeMatch[1]).replace(/[.,](?=\\d{3}$)/, '');
-        const to = normalizeAmount(rangeMatch[2]).replace(/[.,](?=\\d{3}$)/, '');
-        if (/^\\d+$/.test(from) && /^\\d+$/.test(to) && Number(from) <= Number(to)) {
+        const from = normalizeAmount(rangeMatch[1]);
+        const to = normalizeAmount(rangeMatch[2]);
+        if (/^\d+$/.test(from) && /^\d+$/.test(to) && Number(from) <= Number(to)) {
           setVacancy(current => ({ ...current, salary_from: from, salary_to: to }));
           setChatMessages(prev => [...prev, {
             type: 'bot',
-            text: `Указал зарплатную вилку: от ${Number(from).toLocaleString('ru-RU')} до ${Number(to).toLocaleString('ru-RU')} руб. Проверьте поля перед сохранением.`
+            text: 'Зарплатная вилка обновлена: от ' + formatAmount(from) + ' до ' + formatAmount(to) + ' руб. Проверьте поля перед сохранением.'
+          }]);
+          return;
+        }
+      }
+
+      // Если пользователь просит заполнить поля по уже заданной вилке,
+      // берём значения из черновика, а не поручаем модели повторно их угадывать.
+      const fillSalaryFields = salaryRequest
+        && /заполн|укаж|перенес|простав|внес/i.test(userMsg)
+        && /пол|значен|вилк|зарплат/i.test(userMsg);
+      if (fillSalaryFields && vacancy.salary_from !== '' && vacancy.salary_to !== '') {
+        const from = normalizeAmount(String(vacancy.salary_from));
+        const to = normalizeAmount(String(vacancy.salary_to));
+        if (/^\d+$/.test(from) && /^\d+$/.test(to)) {
+          setVacancy(current => ({ ...current, salary_from: from, salary_to: to }));
+          setChatMessages(prev => [...prev, {
+            type: 'bot',
+            text: 'Заполнил поля «Зарплата от» и «Зарплата до» значениями из вилки: ' + formatAmount(from) + '–' + formatAmount(to) + ' руб. Проверьте поля перед сохранением.'
           }]);
           return;
         }
@@ -147,16 +167,14 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       const answer = await requestAI([
         {
           role: 'system',
-          content: `Ты ИИ-редактор вакансий HR-платформы радиоэлектронного предприятия. Текущий черновик вакансии в JSON: ${JSON.stringify({
+          content: 'Ты ИИ-редактор вакансий HR-платформы радиоэлектронного предприятия. Текущий черновик вакансии в JSON: ' + JSON.stringify({
             title: vacancy.title,
             department: vacancy.department,
             description: vacancy.description,
             required_skills: vacancy.required_skills,
             salary_from: vacancy.salary_from,
             salary_to: vacancy.salary_to
-          })}.
-Отвечай только корректным JSON без Markdown в формате {"message":"краткий ответ по-русски","changes":{}}.
-Допустимые ключи в changes: title, department, description, required_skills, salary_from, salary_to. В changes включай ТОЛЬКО поля, которые пользователь явно попросил изменить. Остальные поля не включай. Если пользователь просит изменить описание, меняй только description; если просит навыки — только required_skills и так далее. Если пользователь задаёт вопрос или просит совет, но не просит вносить изменения, верни changes как пустой объект и ответь в message. Не придумывай зарплату, требования, опыт или условия без просьбы пользователя. Значения полей возвращай строками; required_skills — строка со списком навыков через запятую; неизвестные значения не додумывай.`
+          }) + ' . Отвечай только корректным JSON без Markdown в формате {"message":"ответ по-русски","changes":{}}. Допустимые ключи в changes: title, department, description, required_skills, salary_from, salary_to. В changes включай ТОЛЬКО поля, которые пользователь явно попросил изменить. Остальные поля не включай. Если пользователь просит изменить описание, меняй только description; если просит навыки — только required_skills и так далее. Если пользователь задаёт вопрос или просит совет, но не просит вносить изменения, верни changes как пустой объект и ответь в message. Не придумывай зарплату, требования, опыт или условия без просьбы пользователя. Значения полей возвращай строками; required_skills — строка со списком навыков через запятую; неизвестные значения не додумывай.'
         },
         ...conversation,
         { role: 'user', content: userMsg }
@@ -169,19 +187,25 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       const changes = {};
       if (parsed.changes && typeof parsed.changes === 'object' && !Array.isArray(parsed.changes)) {
         allowedFields.forEach(field => {
-          if (Object.prototype.hasOwnProperty.call(parsed.changes, field)) {
-            const value = parsed.changes[field];
-            changes[field] = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+          if (!Object.prototype.hasOwnProperty.call(parsed.changes, field)) return;
+          const value = Array.isArray(parsed.changes[field])
+            ? parsed.changes[field].join(', ')
+            : String(parsed.changes[field] ?? '');
+          if (field === 'salary_from' || field === 'salary_to') {
+            const amount = normalizeAmount(value);
+            if (!/^\d+$/.test(amount)) return;
+            changes[field] = amount;
+          } else {
+            changes[field] = value;
           }
         });
       }
+
       const changedFields = Object.keys(changes);
       if (changedFields.length > 0) {
         setVacancy(current => ({ ...current, ...changes }));
       }
 
-      // Подтверждение строим по реально полученным изменениям, а не по шаблонному
-      // тексту модели вроде «краткий ответ по-русски».
       const fieldLabels = {
         title: 'название вакансии',
         department: 'отдел',
@@ -194,17 +218,17 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       if (changedFields.length > 0) {
         if (Object.prototype.hasOwnProperty.call(changes, 'salary_from')
           && Object.prototype.hasOwnProperty.call(changes, 'salary_to')) {
-          reply = `Зарплатная вилка обновлена: от ${Number(changes.salary_from).toLocaleString('ru-RU')} до ${Number(changes.salary_to).toLocaleString('ru-RU')} руб. Проверьте поля перед сохранением.`;
+          reply = 'Зарплатная вилка обновлена: от ' + formatAmount(changes.salary_from) + ' до ' + formatAmount(changes.salary_to) + ' руб. Проверьте поля перед сохранением.';
         } else {
           const labels = changedFields.map(field => fieldLabels[field]).filter(Boolean);
-          reply = `Обновлены поля: ${labels.join(', ')}. Проверьте изменения перед сохранением.`;
+          reply = 'Обновлены поля: ' + labels.join(', ') + '. Проверьте изменения перед сохранением.';
         }
       } else {
         const modelMessage = String(parsed.message || '').trim();
         const isPlaceholder = !modelMessage
           || /краткий ответ по-русски|краткий ответ|ваш ответ здесь|ответ по-русски/i.test(modelMessage);
         reply = isPlaceholder
-          ? 'Не удалось определить, какие поля нужно изменить. Попробуйте сформулировать запрос точнее.'
+          ? 'Не удалось определить изменения. Уточните, какое поле и как нужно изменить.'
           : modelMessage;
       }
 
@@ -212,7 +236,7 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
     } catch (err) {
       setChatMessages(prev => [...prev, {
         type: 'bot',
-        text: `Не удалось применить изменения: ${err.message || 'попробуйте ещё раз'}`
+        text: 'Не удалось применить изменения: ' + (err.message || 'попробуйте ещё раз')
       }]);
     } finally {
       setAiProcessing(false);
