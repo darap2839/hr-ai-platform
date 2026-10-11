@@ -202,6 +202,17 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       }
 
       const changedFields = Object.keys(changes);
+      const nextSalaryFrom = changes.salary_from ?? vacancy.salary_from;
+      const nextSalaryTo = changes.salary_to ?? vacancy.salary_to;
+      if (nextSalaryFrom !== '' && nextSalaryFrom !== null
+        && nextSalaryTo !== '' && nextSalaryTo !== null
+        && Number(nextSalaryFrom) > Number(nextSalaryTo)) {
+        setChatMessages(prev => [...prev, {
+          type: 'bot',
+          text: 'Не применил изменение зарплаты: значение «Зарплата от» выше «Зарплата до». Укажите обе границы вилки так, чтобы минимальная зарплата была не больше максимальной.'
+        }]);
+        return;
+      }
       if (changedFields.length > 0) {
         setVacancy(current => ({ ...current, ...changes }));
       }
@@ -295,6 +306,13 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
   const handleSave = async () => {
     if (!vacancy.title || !vacancy.department) {
       alert('Пожалуйста, заполните название и отдел');
+      return;
+    }
+
+    if (vacancy.salary_from !== '' && vacancy.salary_from !== null
+      && vacancy.salary_to !== '' && vacancy.salary_to !== null
+      && Number(vacancy.salary_from) > Number(vacancy.salary_to)) {
+      alert('Проверьте зарплатную вилку: «Зарплата от» не может быть больше «Зарплата до». Исправьте значения перед сохранением.');
       return;
     }
 
