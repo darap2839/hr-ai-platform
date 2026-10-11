@@ -9,7 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /workspace
 
 RUN pip install --upgrade pip && \
-    pip install "soup-cli[serve]"
+    pip install "soup-cli[serve]" && \
+    pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 EXPOSE 8000
 
