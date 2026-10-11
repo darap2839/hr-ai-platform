@@ -13,6 +13,7 @@ from app.api.rag import router as rag_router
 from app.api.documents import router as documents_router
 from app.api.organization import router as organization_router
 from app.api.websockets import router as websocket_router
+from app.api.ai import router as ai_router
 
 api_router = APIRouter(prefix="/api")
 
@@ -27,4 +28,5 @@ api_router.include_router(notifications_router)
 api_router.include_router(rag_router)
 api_router.include_router(documents_router)
 api_router.include_router(organization_router)
+api_router.include_router(ai_router)
 # WebSocket роутер подключается без префикса /api
