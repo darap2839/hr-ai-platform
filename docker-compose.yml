@@ -44,6 +44,7 @@ services:
     volumes:
       - ./data/ai-models:/models
     command:
+      - soup
       - serve
       - --model
       - ${AI_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
