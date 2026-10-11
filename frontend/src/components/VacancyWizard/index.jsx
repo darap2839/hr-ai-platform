@@ -243,18 +243,32 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      style={isEditing ? {
+        display: 'flex',
+        alignItems: 'stretch',
+        justifyContent: 'flex-end',
+        padding: 0,
+        background: 'rgba(15, 23, 42, 0.24)'
+      } : undefined}
+    >
       <div
         className="modal-content"
         onClick={e => e.stopPropagation()}
         style={{
-          width: 'min(1100px, calc(100vw - 32px))',
+          width: isEditing ? 'min(860px, 100vw)' : 'min(1100px, calc(100vw - 32px))',
           maxWidth: 'none',
-          maxHeight: 'calc(100vh - 32px)',
-          minWidth: 'min(720px, calc(100vw - 32px))',
-          minHeight: 'min(600px, calc(100vh - 32px))',
+          maxHeight: isEditing ? '100vh' : 'calc(100vh - 32px)',
+          minWidth: isEditing ? 'min(680px, 100vw)' : 'min(720px, calc(100vw - 32px))',
+          minHeight: isEditing ? '100vh' : 'min(600px, calc(100vh - 32px))',
+          height: isEditing ? '100vh' : 'auto',
+          borderRadius: isEditing ? '16px 0 0 16px' : undefined,
+          boxShadow: isEditing ? '-12px 0 36px rgba(15, 23, 42, 0.16)' : undefined,
           overflow: 'auto',
-          resize: 'both'
+          resize: isEditing ? 'none' : 'both',
+          animation: isEditing ? 'vacancy-editor-drawer-in 180ms ease-out' : undefined
         }}
       >
         <div className="modal-header">
