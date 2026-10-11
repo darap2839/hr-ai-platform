@@ -131,8 +131,8 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       // каждое поле напрямую и не зависим от формата ответа локальной модели.
       // Поддерживаем как «до 25000», так и «до с 200000 на 25000».
       if (salaryRequest) {
-        const fromFieldMatch = userMsg.match(/\bот\s*(\d[\d\s\u00a0.,]*)\s+на\s*(\d[\d\s\u00a0.,]*)/i);
-        const toFieldMatch = userMsg.match(/\bдо\s+(?:с\s*)?(\d[\d\s\u00a0.,]*?)(?:\s+на\s*(\d[\d\s\u00a0.,]*))?(?=\s*(?:руб(?:лей|ля)?|р\.?|и\b|$))/i);
+        const fromFieldMatch = userMsg.match(/(?:^|\s)от\s*(\d[\d\s\u00a0.,]*)\s+на\s*(\d[\d\s\u00a0.,]*)/i);
+        const toFieldMatch = userMsg.match(/(?:^|\s)до\s+(?:с\s*)?(\d[\d\s\u00a0.,]*?)(?:\s+на\s*(\d[\d\s\u00a0.,]*))?(?=\s*(?:руб(?:лей|ля)?|р\.?|и\s|$))/i);
         const directChanges = {};
         if (fromFieldMatch) directChanges.salary_from = normalizeAmount(fromFieldMatch[2]);
         if (toFieldMatch) directChanges.salary_to = normalizeAmount(toFieldMatch[2] || toFieldMatch[1]);
