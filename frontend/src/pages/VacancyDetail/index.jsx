@@ -40,7 +40,7 @@ export default function VacancyDetailPage() {
   };
 
   const handleEdit = () => {
-    navigate('/vacancies');
+    navigate('/vacancies', { state: { editVacancy: vacancy } });
   };
 
   if (loading) {
