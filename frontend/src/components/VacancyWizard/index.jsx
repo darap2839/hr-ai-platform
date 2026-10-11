@@ -3,9 +3,20 @@ import { X, Sparkles, Upload, ArrowLeft, ArrowRight, Check, MessageSquare } from
 
 const emptyVacancy = { title: '', department: '', description: '', required_skills: '', salary_from: '', salary_to: '' };
 
-export default function VacancyWizard({ onClose, onSave }) {
-  const [step, setStep] = useState(1);
-  const [vacancy, setVacancy] = useState(emptyVacancy);
+export default function VacancyWizard({ onClose, onSave, initialVacancy = null, isEditing = false }) {
+  const [step, setStep] = useState(initialVacancy ? 2 : 1);
+  const [vacancy, setVacancy] = useState(() => {
+    if (!initialVacancy) return emptyVacancy;
+    return {
+      ...emptyVacancy,
+      ...initialVacancy,
+      required_skills: Array.isArray(initialVacancy.required_skills)
+        ? initialVacancy.required_skills.join(', ')
+        : String(initialVacancy.required_skills || ''),
+      salary_from: initialVacancy.salary_from ?? '',
+      salary_to: initialVacancy.salary_to ?? ''
+    };
+  });
   const [dragActive, setDragActive] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -167,9 +178,21 @@ export default function VacancyWizard({ onClose, onSave }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+      <div
+        className="modal-content"
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: 'min(1100px, calc(100vw - 32px))',
+          maxWidth: 'none',
+          maxHeight: 'calc(100vh - 32px)',
+          minWidth: 'min(720px, calc(100vw - 32px))',
+          minHeight: 'min(600px, calc(100vh - 32px))',
+          overflow: 'auto',
+          resize: 'both'
+        }}
+      >
         <div className="modal-header">
-          <h2>Создание вакансии</h2>
+          <h2>{isEditing ? 'Редактирование вакансии' : 'Создание вакансии'}</h2>
           <button className="icon-button" onClick={onClose}><X size={20} /></button>
         </div>
 
@@ -197,14 +220,14 @@ export default function VacancyWizard({ onClose, onSave }) {
           <div style={{ padding: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
               {/* Chat Interface */}
-              <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: '52vh', minHeight: '360px', maxHeight: '65vh', fontSize: '16px' }}>
                 <div style={{ padding: '12px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontWeight: '500' }}>
                   <MessageSquare size={16} style={{ display: 'inline', marginRight: '8px' }} />Чат-помощник
                 </div>
-                <div style={{ flex: 1, padding: '16px', overflowY: 'auto', maxHeight: '300px' }}>
+                <div style={{ flex: 1, padding: '16px', overflowY: 'auto', minHeight: 0, fontSize: '16px', lineHeight: 1.6 }}>
                   {chatMessages.map((msg, i) => (
                     <div key={i} style={{
-                      marginBottom: '12px', padding: '10px 14px', borderRadius: '12px',
+                      marginBottom: '12px', padding: '12px 15px', borderRadius: '12px', fontSize: '16px', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere',
                       background: msg.type === 'bot' ? '#f1f5f9' : '#dbeafe',
                       alignSelf: msg.type === 'user' ? 'flex-end' : 'flex-start',
                       maxWidth: '90%'
@@ -221,7 +244,7 @@ export default function VacancyWizard({ onClose, onSave }) {
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
                     placeholder="Задайте вопрос или опишите вакансию..."
-                    style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    style={{ flex: 1, padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '16px', minWidth: 0 }}
                   />
                   <button onClick={handleSendMessage} className="primary-button" disabled={aiProcessing}>
                     {aiProcessing ? '...' : '→'}
@@ -310,7 +333,7 @@ export default function VacancyWizard({ onClose, onSave }) {
             <div style={{ width: '80px', height: '80px', background: '#d1fae5', borderRadius: '50%', display: 'grid', placeItems: 'center', margin: '0 auto 24px' }}>
               <Check size={40} color="#166534" />
             </div>
-            <h2 style={{ marginBottom: '12px' }}>Вакансия создана!</h2>
+            <h2 style={{ marginBottom: '12px' }}>{isEditing ? 'Изменения сохранены!' : 'Вакансия создана!'}</h2>
             <p style={{ color: '#64748b', marginBottom: '24px' }}>Данные успешно сохранены в системе</p>
           </div>
         )}
@@ -329,7 +352,7 @@ export default function VacancyWizard({ onClose, onSave }) {
           
           {step === 2 && (
             <button onClick={handleSave} className="primary-button" disabled={saving} style={{ background: saving ? '#94a3b8' : '#166534' }}>
-              {saving ? 'Сохранение...' : <><Check size={18} /> Сохранить вакансию</>}
+              {saving ? 'Сохранение...' : <><Check size={18} /> {isEditing ? 'Сохранить изменения' : 'Сохранить вакансию'}</>}
             </button>
           )}
           
