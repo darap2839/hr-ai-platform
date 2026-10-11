@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Briefcase, MapPin, DollarSign, Calendar, Users, Edit2, Trash2 } from 'lucide-react';
 import { hrApi } from '../../api/client';
+import VacancyWizard from '../../components/VacancyWizard';
 
 export default function VacancyDetailPage() {
   const { id } = useParams();
@@ -9,6 +10,7 @@ export default function VacancyDetailPage() {
   const [vacancy, setVacancy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEditor, setShowEditor] = useState(false);
 
   useEffect(() => {
     const loadVacancy = async () => {
@@ -40,7 +42,24 @@ export default function VacancyDetailPage() {
   };
 
   const handleEdit = () => {
-    navigate('/vacancies', { state: { editVacancy: vacancy } });
+    setShowEditor(true);
+  };
+
+  const handleSaveEdit = async (vacancyData) => {
+    const payload = {
+      title: vacancyData.title,
+      department: vacancyData.department,
+      description: vacancyData.description,
+      required_skills: String(vacancyData.required_skills || '')
+        .split(',')
+        .map(skill => skill.trim())
+        .filter(Boolean),
+      salary_from: vacancyData.salary_from ? Number(vacancyData.salary_from) : null,
+      salary_to: vacancyData.salary_to ? Number(vacancyData.salary_to) : null,
+    };
+    await hrApi.updateVacancy(parseInt(id), payload);
+    const updatedVacancy = await hrApi.getVacancy(parseInt(id));
+    setVacancy(updatedVacancy);
   };
 
   if (loading) {
@@ -66,6 +85,15 @@ export default function VacancyDetailPage() {
 
   return (
     <div className="page-container">
+      {showEditor && (
+        <VacancyWizard
+          key={vacancy.id}
+          initialVacancy={vacancy}
+          isEditing
+          onClose={() => setShowEditor(false)}
+          onSave={handleSaveEdit}
+        />
+      )}
       {/* Header */}
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
