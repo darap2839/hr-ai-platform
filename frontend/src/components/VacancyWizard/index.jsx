@@ -122,6 +122,24 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
   const handleEditWithAI = async (userMsg) => {
     setAiProcessing(true);
     try {
+      // Простые однозначные изменения обрабатываем без генеративной модели:
+      // небольшая локальная модель может ответить текстом, не вернув changes.
+      const salaryRequest = /зарплат|оплат|оклад|salary|вилк/i.test(userMsg);
+      const normalizeAmount = value => value.replace(/[\\s\\u00a0]/g, '').replace(/[,](?=\\d{3}(?:\\D|$))/g, '');
+      const rangeMatch = userMsg.match(/(?:от\\s*)?(\\d[\\d\\s\\u00a0.,]*)\\s*(?:до|[-–—])\\s*(\\d[\\d\\s\\u00a0.,]*)/i);
+      if (salaryRequest && rangeMatch) {
+        const from = normalizeAmount(rangeMatch[1]).replace(/[.,](?=\\d{3}$)/, '');
+        const to = normalizeAmount(rangeMatch[2]).replace(/[.,](?=\\d{3}$)/, '');
+        if (/^\\d+$/.test(from) && /^\\d+$/.test(to) && Number(from) <= Number(to)) {
+          setVacancy(current => ({ ...current, salary_from: from, salary_to: to }));
+          setChatMessages(prev => [...prev, {
+            type: 'bot',
+            text: `Указал зарплатную вилку: от ${Number(from).toLocaleString('ru-RU')} до ${Number(to).toLocaleString('ru-RU')} руб. Проверьте поля перед сохранением.`
+          }]);
+          return;
+        }
+      }
+
       const conversation = chatMessages.slice(-8).map(message => ({
         role: message.type === 'user' ? 'user' : 'assistant',
         content: message.text
