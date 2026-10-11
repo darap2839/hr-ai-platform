@@ -10,7 +10,8 @@ WORKDIR /workspace
 
 RUN pip install --upgrade pip && \
     pip install "soup-cli[serve]" && \
-    pip install torch --index-url https://download.pytorch.org/whl/cpu
+    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install transformers numpy accelerate
 
 EXPOSE 8000
 
