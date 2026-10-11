@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     keycloak_realm: str = Field(default="hr-ai", alias="KEYCLOAK_REALM")
     keycloak_client_id: str = Field(default="hr-ai-frontend", alias="KEYCLOAK_CLIENT_ID")
     ai_engine_url: str = Field(default="http://ai-engine:8000", alias="AI_ENGINE_URL")
+    ai_model_name: str = Field(default="Qwen2.5-0.5B-Instruct", alias="AI_MODEL_NAME")
 
     class Config:
         populate_by_name = True
