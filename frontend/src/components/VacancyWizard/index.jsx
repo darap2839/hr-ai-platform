@@ -175,15 +175,40 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
           }
         });
       }
-      if (Object.keys(changes).length > 0) {
+      const changedFields = Object.keys(changes);
+      if (changedFields.length > 0) {
         setVacancy(current => ({ ...current, ...changes }));
       }
-      setChatMessages(prev => [...prev, {
-        type: 'bot',
-        text: String(parsed.message || (Object.keys(changes).length
-          ? 'Черновик обновлён. Проверьте изменённые поля перед сохранением.'
-          : 'Готов помочь. Уточните, какое поле нужно изменить.'))
-      }]);
+
+      // Подтверждение строим по реально полученным изменениям, а не по шаблонному
+      // тексту модели вроде «краткий ответ по-русски».
+      const fieldLabels = {
+        title: 'название вакансии',
+        department: 'отдел',
+        description: 'описание',
+        required_skills: 'навыки',
+        salary_from: 'минимальная зарплата',
+        salary_to: 'максимальная зарплата'
+      };
+      let reply;
+      if (changedFields.length > 0) {
+        if (Object.prototype.hasOwnProperty.call(changes, 'salary_from')
+          && Object.prototype.hasOwnProperty.call(changes, 'salary_to')) {
+          reply = `Зарплатная вилка обновлена: от ${Number(changes.salary_from).toLocaleString('ru-RU')} до ${Number(changes.salary_to).toLocaleString('ru-RU')} руб. Проверьте поля перед сохранением.`;
+        } else {
+          const labels = changedFields.map(field => fieldLabels[field]).filter(Boolean);
+          reply = `Обновлены поля: ${labels.join(', ')}. Проверьте изменения перед сохранением.`;
+        }
+      } else {
+        const modelMessage = String(parsed.message || '').trim();
+        const isPlaceholder = !modelMessage
+          || /краткий ответ по-русски|краткий ответ|ваш ответ здесь|ответ по-русски/i.test(modelMessage);
+        reply = isPlaceholder
+          ? 'Не удалось определить, какие поля нужно изменить. Попробуйте сформулировать запрос точнее.'
+          : modelMessage;
+      }
+
+      setChatMessages(prev => [...prev, { type: 'bot', text: reply }]);
     } catch (err) {
       setChatMessages(prev => [...prev, {
         type: 'bot',
