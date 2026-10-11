@@ -1,0 +1,41 @@
+name: "CI: AI Engine"
+run-name: "CI: AI Engine / ${{ github.ref_name }} / ${{ github.actor }}"
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - 'gh-readonly-queue/**'
+    paths:
+      - 'ai-engine/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/ai-engine.yml'
+  pull_request:
+    branches-ignore:
+      - 'gh-readonly-queue/**'
+    paths:
+      - 'ai-engine/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/ai-engine.yml'
+
+concurrency:
+  group: ci-ai-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build AI Engine image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build AI Engine image
+        run: docker build --tag ai-engine-ci:${{ github.sha }} --file ai-engine/Dockerfile ai-engine
+
+      - name: Verify Soup CLI is installed
+        run: docker run --rm ai-engine-ci:${{ github.sha }} python -c "from importlib.metadata import version; print('soup-cli', version('soup-cli'))"
