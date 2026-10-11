@@ -11,6 +11,7 @@ class AIEngineClient:
 
     async def chat(self, messages: list[dict[str, str]], max_tokens: int = 256) -> dict[str, Any]:
         payload = {
+            "model": get_settings().ai_model_name,
             "messages": messages,
             "max_tokens": max_tokens,
         }
