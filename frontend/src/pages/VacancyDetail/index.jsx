@@ -89,6 +89,7 @@ export default function VacancyDetailPage() {
         key={vacancy.id}
         initialVacancy={vacancy}
         isEditing
+        pageMode
         onClose={() => setShowEditor(false)}
         onSave={handleSaveEdit}
       />
