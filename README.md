@@ -51,3 +51,27 @@ Analytics
 
 ### Commit 10
 Demo scenario
+
+## Local AI Engine (CPU)
+
+The optional local model runs in a separate Docker Compose service. It is not required to start the rest of the platform.
+
+See [AI Engine setup and troubleshooting](ai-engine/README.md) for first-time model download, startup, health checks, and a test prompt.
+
+Current model: `Qwen/Qwen2.5-0.5B-Instruct`. The model files live in `data/ai-models` and are not committed to Git.
+
+The FastAPI endpoint for chat is `POST /api/ai/chat`. Example request body:
+
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Ответь по-русски: что такое подбор сотрудников?"
+    }
+  ],
+  "max_tokens": 100
+}
+```
+
+When the AI Engine is running, FastAPI forwards this request to the internal Docker address `http://ai-engine:8000`. The AI Engine port is intentionally not published to the host by default.
