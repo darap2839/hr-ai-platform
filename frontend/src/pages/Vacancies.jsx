@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { Briefcase, Plus, Trash2, Edit2, X, Check, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { hrApi } from '../api/client';
@@ -9,6 +9,7 @@ const ITEMS_PER_PAGE = 12; // Количество элементов на ст�
 
 const VacanciesPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [vacancies, setVacancies] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -56,13 +57,33 @@ const VacanciesPage = () => {
   const handleEdit = (v) => {
     setVacancy({
       ...v,
-      salary_from: v.salary_from || '',
-      salary_to: v.salary_to || '',
-      required_skills: v.required_skills.join(', '),
+      salary_from: v.salary_from ?? '',
+      salary_to: v.salary_to ?? '',
+      required_skills: Array.isArray(v.required_skills)
+        ? v.required_skills.join(', ')
+        : String(v.required_skills || ''),
     });
     setEditingId(v.id);
     setShowWizard(true);
   };
+
+  // Открываем редактор, если перешли сюда с карточки конкретной вакансии.
+  useEffect(() => {
+    const vacancyToEdit = location.state?.editVacancy;
+    if (!vacancyToEdit) return;
+
+    setVacancy({
+      ...vacancyToEdit,
+      salary_from: vacancyToEdit.salary_from ?? '',
+      salary_to: vacancyToEdit.salary_to ?? '',
+      required_skills: Array.isArray(vacancyToEdit.required_skills)
+        ? vacancyToEdit.required_skills.join(', ')
+        : String(vacancyToEdit.required_skills || ''),
+    });
+    setEditingId(vacancyToEdit.id);
+    setShowWizard(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.key, location.pathname, location.state, navigate]);
 
   const handleDelete = async (id) => {
     if (!confirm('Вы уверены, что хотите удалить эту вакансию?')) return;
@@ -152,7 +173,10 @@ const VacanciesPage = () => {
       </div>
 
       {showWizard && (
-        <VacancyWizard 
+        <VacancyWizard
+          key={editingId || 'new'}
+          initialVacancy={editingId ? vacancy : null}
+          isEditing={Boolean(editingId)}
           onClose={() => setShowWizard(false)}
           onSave={handleSaveVacancy}
         />
