@@ -127,6 +127,42 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       const formatAmount = value => Number(value).toLocaleString('ru-RU');
       const rangeMatch = userMsg.match(/(\d[\d\s\u00a0.,]*)\s*(?:до|[-–—])\s*(\d[\d\s\u00a0.,]*)/i);
 
+      // Если пользователь называет поля «от» и «до» отдельно, разбираем
+      // каждое поле напрямую и не зависим от формата ответа локальной модели.
+      // Поддерживаем как «до 25000», так и «до с 200000 на 25000».
+      if (salaryRequest) {
+        const fromFieldMatch = userMsg.match(/\bот\s*(\d[\d\s\u00a0.,]*)\s+на\s*(\d[\d\s\u00a0.,]*)/i);
+        const toFieldMatch = userMsg.match(/\bдо\s+(?:с\s*)?(\d[\d\s\u00a0.,]*?)(?:\s+на\s*(\d[\d\s\u00a0.,]*))?(?=\s*(?:руб(?:лей|ля)?|р\.?|и\b|$))/i);
+        const directChanges = {};
+        if (fromFieldMatch) directChanges.salary_from = normalizeAmount(fromFieldMatch[2]);
+        if (toFieldMatch) directChanges.salary_to = normalizeAmount(toFieldMatch[2] || toFieldMatch[1]);
+
+        if (Object.keys(directChanges).length > 0) {
+          const nextFrom = directChanges.salary_from ?? normalizeAmount(String(vacancy.salary_from || ''));
+          const nextTo = directChanges.salary_to ?? normalizeAmount(String(vacancy.salary_to || ''));
+          if (Object.values(directChanges).every(value => /^\d+$/.test(value))
+            && (!nextFrom || !nextTo || Number(nextFrom) <= Number(nextTo))) {
+            setVacancy(current => ({ ...current, ...directChanges }));
+            const fromLabel = directChanges.salary_from ?? nextFrom;
+            const toLabel = directChanges.salary_to ?? nextTo;
+            setChatMessages(prev => [...prev, {
+              type: 'bot',
+              text: directChanges.salary_from && directChanges.salary_to
+                ? 'Зарплатная вилка обновлена: от ' + formatAmount(fromLabel) + ' до ' + formatAmount(toLabel) + ' руб. Проверьте поля перед сохранением.'
+                : 'Обновил указанное поле зарплаты. Проверьте, чтобы минимальная зарплата не превышала максимальную, перед сохранением.'
+            }]);
+            return;
+          }
+          if (nextFrom && nextTo && Number(nextFrom) > Number(nextTo)) {
+            setChatMessages(prev => [...prev, {
+              type: 'bot',
+              text: 'Не применил изменение: итоговая зарплатная вилка должна быть корректной. Укажите «Зарплата от» не выше «Зарплата до».'
+            }]);
+            return;
+          }
+        }
+      }
+
       // Однозначную зарплатную вилку применяем напрямую: локальная модель
       // иногда возвращает шаблонный текст вместо JSON или некорректные числа.
       if (salaryRequest && rangeMatch) {
