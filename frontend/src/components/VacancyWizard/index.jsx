@@ -3,7 +3,7 @@ import { X, Sparkles, Upload, ArrowLeft, ArrowRight, Check, MessageSquare } from
 
 const emptyVacancy = { title: '', department: '', description: '', required_skills: '', salary_from: '', salary_to: '' };
 
-export default function VacancyWizard({ onClose, onSave, initialVacancy = null, isEditing = false }) {
+export default function VacancyWizard({ onClose, onSave, initialVacancy = null, isEditing = false, pageMode = false }) {
   const [step, setStep] = useState(initialVacancy ? 2 : 1);
   const [vacancy, setVacancy] = useState(() => {
     if (!initialVacancy) return emptyVacancy;
@@ -244,9 +244,9 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
 
   return (
     <div
-      className={isEditing ? 'vacancy-editor-page' : 'modal-overlay'}
-      onClick={isEditing ? undefined : onClose}
-      style={isEditing ? {
+      className={pageMode ? 'vacancy-editor-page' : 'modal-overlay'}
+      onClick={pageMode ? undefined : onClose}
+      style={pageMode ? {
         width: '100%',
         minHeight: '100vh',
         boxSizing: 'border-box',
@@ -256,30 +256,37 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
       } : undefined}
     >
       <div
-        className={isEditing ? 'vacancy-editor-workspace' : 'modal-content'}
-        onClick={isEditing ? undefined : e => e.stopPropagation()}
+        className={pageMode ? 'vacancy-editor-workspace' : 'modal-content'}
+        onClick={pageMode ? undefined : e => e.stopPropagation()}
         style={{
-          width: isEditing ? '100%' : 'min(1100px, calc(100vw - 32px))',
-          maxWidth: isEditing ? '1600px' : 'none',
-          margin: isEditing ? '0 auto' : undefined,
-          maxHeight: isEditing ? 'none' : 'calc(100vh - 32px)',
-          minWidth: isEditing ? 0 : 'min(720px, calc(100vw - 32px))',
-          minHeight: isEditing ? 'calc(100vh - 48px)' : 'min(600px, calc(100vh - 32px))',
-          height: isEditing ? 'auto' : 'auto',
-          borderRadius: isEditing ? '16px' : undefined,
-          border: isEditing ? '1px solid #e2e8f0' : undefined,
-          boxShadow: isEditing ? '0 8px 32px rgba(15, 23, 42, 0.06)' : undefined,
-          background: isEditing ? '#ffffff' : undefined,
-          overflow: isEditing ? 'visible' : 'auto',
-          resize: isEditing ? 'none' : 'both'
+          width: pageMode ? '100%' : (isEditing ? 'min(1240px, calc(100vw - 32px))' : 'min(1100px, calc(100vw - 32px))'),
+          maxWidth: pageMode ? '1600px' : 'none',
+          margin: pageMode ? '0 auto' : undefined,
+          maxHeight: pageMode ? 'none' : 'calc(100vh - 32px)',
+          minWidth: pageMode ? 0 : 'min(720px, calc(100vw - 32px))',
+          minHeight: pageMode ? 'calc(100vh - 48px)' : 'min(600px, calc(100vh - 32px))',
+          height: 'auto',
+          borderRadius: pageMode ? '16px' : undefined,
+          border: pageMode ? '1px solid #e2e8f0' : undefined,
+          boxShadow: pageMode ? '0 8px 32px rgba(15, 23, 42, 0.06)' : undefined,
+          background: pageMode ? '#ffffff' : undefined,
+          overflow: pageMode ? 'visible' : 'auto',
+          resize: pageMode ? 'none' : 'both'
         }}
       >
-        <div className="modal-header" style={isEditing ? { padding: '20px 24px', borderBottom: '1px solid #e2e8f0' } : undefined}>
+        <div className="modal-header" style={pageMode ? { padding: '20px 24px', borderBottom: '1px solid #e2e8f0', gap: '16px', flexWrap: 'wrap' } : undefined}>
           <div>
             <h2>{isEditing ? 'Редактирование вакансии' : 'Создание вакансии'}</h2>
             {isEditing && <p style={{ margin: '5px 0 0', color: '#64748b', fontSize: '14px' }}>Изменения попадут в вакансию только после сохранения</p>}
           </div>
-          <button className="icon-button" onClick={onClose} title={isEditing ? 'Вернуться к вакансии' : 'Закрыть'}><X size={20} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {pageMode && (
+              <button className="secondary-button" onClick={onClose} style={{ whiteSpace: 'nowrap' }}>
+                <ArrowLeft size={18} /> Вернуться к вакансии
+              </button>
+            )}
+            {!pageMode && <button className="icon-button" onClick={onClose} title="Закрыть редактор"><X size={20} /></button>}
+          </div>
         </div>
 
         {/* Progress Steps */}
@@ -425,7 +432,7 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
               </div>
             </div>
             {isEditing && (
-              <div style={{ border: '1px solid #cbd5e1', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 300px)', minHeight: '480px', maxHeight: '900px', minWidth: 0, overflow: 'hidden', position: 'sticky', top: '16px' }}>
+              <div style={{ border: '1px solid #cbd5e1', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: pageMode ? 'calc(100vh - 300px)' : 'min(58vh, 620px)', minHeight: '380px', maxHeight: pageMode ? '900px' : 'none', minWidth: 0, overflow: 'hidden', position: pageMode ? 'sticky' : 'relative', top: pageMode ? '16px' : undefined }}>
                 <div style={{ padding: '12px 14px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Sparkles size={17} color="#0b73ff" /> ИИ-помощник по вакансии
                 </div>
