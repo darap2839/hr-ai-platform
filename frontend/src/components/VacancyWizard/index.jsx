@@ -20,8 +20,13 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
   const [dragActive, setDragActive] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { type: 'bot', text: 'Привет! Я помогу создать вакансию. Напишите описание или загрузите файл.' }
+  const [chatMessages, setChatMessages] = useState(() => [
+    {
+      type: 'bot',
+      text: isEditing
+        ? 'Я ИИ-помощник по редактированию вакансии. Напишите, что изменить — например, «улучши описание» или «добавь требования к навыкам». Я обновлю черновик, а сохранить изменения сможете вы.'
+        : 'Привет! Я помогу создать вакансию. Напишите описание или загрузите файл.'
+    }
   ]);
   const [chatInput, setChatInput] = useState('');
   const fileInputRef = useRef(null);
@@ -114,13 +119,74 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
     }
   };
 
+  const handleEditWithAI = async (userMsg) => {
+    setAiProcessing(true);
+    try {
+      const conversation = chatMessages.slice(-8).map(message => ({
+        role: message.type === 'user' ? 'user' : 'assistant',
+        content: message.text
+      }));
+      const answer = await requestAI([
+        {
+          role: 'system',
+          content: `Ты ИИ-редактор вакансий HR-платформы радиоэлектронного предприятия. Текущий черновик вакансии в JSON: ${JSON.stringify({
+            title: vacancy.title,
+            department: vacancy.department,
+            description: vacancy.description,
+            required_skills: vacancy.required_skills,
+            salary_from: vacancy.salary_from,
+            salary_to: vacancy.salary_to
+          })}.
+Отвечай только корректным JSON без Markdown в формате {"message":"краткий ответ по-русски","changes":{}}.
+Допустимые ключи в changes: title, department, description, required_skills, salary_from, salary_to. В changes включай ТОЛЬКО поля, которые пользователь явно попросил изменить. Остальные поля не включай. Если пользователь просит изменить описание, меняй только description; если просит навыки — только required_skills и так далее. Если пользователь задаёт вопрос или просит совет, но не просит вносить изменения, верни changes как пустой объект и ответь в message. Не придумывай зарплату, требования, опыт или условия без просьбы пользователя. Значения полей возвращай строками; required_skills — строка со списком навыков через запятую; неизвестные значения не додумывай.`
+        },
+        ...conversation,
+        { role: 'user', content: userMsg }
+      ], 512);
+
+      const jsonText = answer.match(/\{[\s\S]*\}/)?.[0];
+      if (!jsonText) throw new Error('ИИ вернул ответ в неподходящем формате. Попробуйте сформулировать просьбу иначе.');
+      const parsed = JSON.parse(jsonText);
+      const allowedFields = ['title', 'department', 'description', 'required_skills', 'salary_from', 'salary_to'];
+      const changes = {};
+      if (parsed.changes && typeof parsed.changes === 'object' && !Array.isArray(parsed.changes)) {
+        allowedFields.forEach(field => {
+          if (Object.prototype.hasOwnProperty.call(parsed.changes, field)) {
+            const value = parsed.changes[field];
+            changes[field] = Array.isArray(value) ? value.join(', ') : String(value ?? '');
+          }
+        });
+      }
+      if (Object.keys(changes).length > 0) {
+        setVacancy(current => ({ ...current, ...changes }));
+      }
+      setChatMessages(prev => [...prev, {
+        type: 'bot',
+        text: String(parsed.message || (Object.keys(changes).length
+          ? 'Черновик обновлён. Проверьте изменённые поля перед сохранением.'
+          : 'Готов помочь. Уточните, какое поле нужно изменить.'))
+      }]);
+    } catch (err) {
+      setChatMessages(prev => [...prev, {
+        type: 'bot',
+        text: `Не удалось применить изменения: ${err.message || 'попробуйте ещё раз'}`
+      }]);
+    } finally {
+      setAiProcessing(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     const userMsg = chatInput.trim();
     if (!userMsg || aiProcessing) return;
 
     setChatMessages(prev => [...prev, { type: 'user', text: userMsg }]);
     setChatInput('');
-    await parseVacancyFromText(userMsg);
+    if (isEditing && step === 2) {
+      await handleEditWithAI(userMsg);
+    } else {
+      await parseVacancyFromText(userMsg);
+    }
   };
 
   const handleFileProcess = async (text) => {
@@ -280,8 +346,14 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
         {/* Step 2: Preview & Edit */}
         {step === 2 && (
           <div style={{ padding: '24px' }}>
-            <h3 style={{ marginBottom: '16px' }}>Проверьте данные вакансии</h3>
-            <div style={{ display: 'grid', gap: '16px' }}>
+            <h3 style={{ marginBottom: '16px' }}>{isEditing ? 'Редактируйте вакансию вручную или с помощью ИИ' : 'Проверьте данные вакансии'}</h3>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isEditing ? 'minmax(0, 1.1fr) minmax(280px, 0.9fr)' : '1fr',
+              gap: '20px',
+              alignItems: 'start'
+            }}>
+            <div style={{ display: 'grid', gap: '16px', minWidth: 0 }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Название *</label>
                 <input
@@ -289,23 +361,30 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Отдел *</label>
+                <input
+                  value={vacancy.department} onChange={e => setVacancy({ ...vacancy, department: e.target.value })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '15px' }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Отдел *</label>
+                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Зарплата от (руб.)</label>
                   <input
-                    value={vacancy.department} onChange={e => setVacancy({ ...vacancy, department: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    type="number"
+                    value={vacancy.salary_from}
+                    onChange={e => setVacancy({ ...vacancy, salary_from: e.target.value })}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '15px' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Зарплата от - до (руб.)</label>
+                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Зарплата до (руб.)</label>
                   <input
-                    value={`${vacancy.salary_from || ''} - ${vacancy.salary_to || ''}`}
-                    onChange={e => {
-                      const [from, to] = e.target.value.split(' - ');
-                      setVacancy({ ...vacancy, salary_from: from, salary_to: to });
-                    }}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    type="number"
+                    value={vacancy.salary_to}
+                    onChange={e => setVacancy({ ...vacancy, salary_to: e.target.value })}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '15px' }}
                   />
                 </div>
               </div>
@@ -318,11 +397,53 @@ export default function VacancyWizard({ onClose, onSave, initialVacancy = null, 
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Навыки (через запятую)</label>
-                <input
+                <textarea
                   value={vacancy.required_skills} onChange={e => setVacancy({ ...vacancy, required_skills: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  rows={3}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '15px', resize: 'vertical' }}
                 />
               </div>
+            </div>
+            {isEditing && (
+              <div style={{ border: '1px solid #cbd5e1', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: 'min(60vh, 620px)', minHeight: '380px', minWidth: 0, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 14px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={17} color="#0b73ff" /> ИИ-помощник по вакансии
+                </div>
+                <div style={{ flex: 1, padding: '14px', overflowY: 'auto', minHeight: 0, fontSize: '15px', lineHeight: 1.6 }}>
+                  {chatMessages.map((msg, i) => (
+                    <div key={i} style={{
+                      marginBottom: '12px',
+                      padding: '11px 13px',
+                      borderRadius: '12px',
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'anywhere',
+                      background: msg.type === 'bot' ? '#f1f5f9' : '#dbeafe',
+                      maxWidth: '100%'
+                    }}>
+                      {msg.text}
+                    </div>
+                  ))}
+                  {aiProcessing && <div style={{ color: '#64748b', marginBottom: '10px' }}>ИИ редактирует черновик…</div>}
+                  <div ref={chatEndRef} />
+                </div>
+                <div style={{ padding: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
+                  <textarea
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+                    placeholder="Например: улучши описание вакансии..."
+                    rows={2}
+                    style={{ flex: 1, minWidth: 0, resize: 'vertical', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '15px' }}
+                  />
+                  <button onClick={handleSendMessage} className="primary-button" disabled={aiProcessing || !chatInput.trim()} title="Отправить запрос">
+                    {aiProcessing ? '…' : '→'}
+                  </button>
+                </div>
+                <div style={{ padding: '0 12px 12px', fontSize: '12px', color: '#64748b' }}>
+                  ИИ меняет черновик, а не опубликованную вакансию. Проверьте поля и нажмите «Сохранить изменения».
+                </div>
+              </div>
+            )}
             </div>
           </div>
         )}
