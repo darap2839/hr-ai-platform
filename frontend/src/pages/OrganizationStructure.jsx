@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Mail, MapPin, Phone, Search, Users, X, Building2, BriefcaseBusiness, Hash, CircleCheck, CircleX } from 'lucide-react';
+import { Mail, MapPin, Phone, Search, Users, X, Building2, Briefcase, Hash, CheckCircle2, XCircle } from 'lucide-react';
 
 const mockEmployees = [
   { id: 1, full_name: 'Иванов Алексей Сергеевич', position: 'Генеральный директор', department: 'Руководство', email: 'a.ivanov@company.local', phone: '+7 (495) 100-10-01', location: 'Москва, офис 301' },
@@ -50,14 +50,14 @@ function EmployeeModal({ employee, onClose }) {
           <div className="directory-modal-avatar">{initials(employee.full_name)}</div>
           <div>
             <span className={`directory-modal-status ${active ? 'active' : 'inactive'}`}>
-              {active ? <CircleCheck size={14} /> : <CircleX size={14} />}{active ? 'Активен' : 'Неактивен'}
+              {active ? <CheckCircle2 size={14} /> : <XCircle size={14} />}{active ? 'Активен' : 'Неактивен'}
             </span>
             <h2 id="employee-modal-title">{employee.full_name}</h2>
             <p>{employee.position}</p>
           </div>
         </div>
         <div className="directory-modal-grid">
-          <div><BriefcaseBusiness size={18} /><span><small>Должность</small><strong>{employee.position}</strong></span></div>
+          <div><Briefcase size={18} /><span><small>Должность</small><strong>{employee.position}</strong></span></div>
           <div><Building2 size={18} /><span><small>Отдел</small><strong>{employee.department}</strong></span></div>
           <div><MapPin size={18} /><span><small>Рабочее место</small><strong>{employee.location}</strong></span></div>
           <div><Hash size={18} /><span><small>Внутренний номер</small><strong>{100 + employee.id}</strong></span></div>
