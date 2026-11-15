@@ -38,8 +38,12 @@ Push-Location -LiteralPath $projectPath
 try {
     $sourceRevision = 'unknown'
     if (Get-Command git -ErrorAction SilentlyContinue) {
-        $sourceLines = @(& git rev-parse HEAD 2>$null)
-        if ($LASTEXITCODE -eq 0 -and $sourceLines.Count) { $sourceRevision = $sourceLines[0] }
+        $oldGitPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $sourceLines = @(& git rev-parse HEAD 2>$null)
+            if ($LASTEXITCODE -eq 0 -and $sourceLines.Count) { $sourceRevision = $sourceLines[0] }
+        } finally { $ErrorActionPreference = $oldGitPreference }
     }
     [ordered]@{
         startedUtc = [datetime]::UtcNow.ToString('o')
