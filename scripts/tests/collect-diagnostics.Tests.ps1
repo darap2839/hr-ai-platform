@@ -62,3 +62,7 @@ try {
     Remove-Item Function:\docker, Function:\Invoke-WebRequest, Function:\Invoke-RestMethod, Function:\git -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $testRoot -Recurse -Force
 }
+
+# The simulated unavailable daemon intentionally sets LASTEXITCODE=1. All assertions
+# above must pass before clearing it for the GitHub Actions PowerShell wrapper.
+$global:LASTEXITCODE = 0
