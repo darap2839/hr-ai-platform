@@ -94,7 +94,7 @@ try {
                     $inspection = Invoke-Docker -Arguments @('inspect', '--format', $template, $containerId)
                     try {
                         if ($inspection.code -ne 0) { throw 'inspect failed' }
-                        $fields = @($inspection.text | ConvertFrom-Json)
+                        $fields = ConvertFrom-Json -InputObject $inspection.text
                         $item = [pscustomobject]@{
                             service = $fields[0].'com.docker.compose.service'
                             image = $fields[1]
