@@ -286,7 +286,7 @@ async def sse_notifications(
     ```
     """
     # Аутентификация
-    user_id = AuthService.authenticate(token)
+    user_id = request.state.user['id']
     
     if not user_id:
         return StreamingResponse(

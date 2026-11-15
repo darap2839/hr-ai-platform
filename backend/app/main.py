@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.core.api_auth import APIAuthenticationMiddleware
 from app.api.router import api_router
 from app.api.websockets import router as websocket_router
 from app.api.sse import router as sse_router
@@ -44,6 +45,7 @@ class RestfulCacheMiddleware(BaseHTTPMiddleware):
         return await restful_cache_middleware(request, call_next)
 
 app.add_middleware(RestfulCacheMiddleware)
+app.add_middleware(APIAuthenticationMiddleware)
 
 
 @app.get("/health")
@@ -60,4 +62,4 @@ def get_cache_stats():
 
 app.include_router(api_router)
 # app.include_router(websocket_router, prefix="/ws")  # WebSocket пока не используем
-app.include_router(sse_router)  # SSE для real-time уведомлений
+app.include_router(sse_router, prefix="/api")  # Authenticated SSE endpoints

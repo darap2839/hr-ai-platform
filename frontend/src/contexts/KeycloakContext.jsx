@@ -2,9 +2,10 @@
  * Keycloak Authentication Context
  * Provides Keycloak authentication throughout the application
  */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import Keycloak from 'keycloak-js';
 import { setAuthToken } from '../api/client';
+import { updateSSEAuthToken, disconnectSSEClient } from '../api/sseNotifications';
 
 /**
  * Получить конфигурацию Keycloak от backend
@@ -56,6 +57,8 @@ const KeycloakContext = createContext(null);
  * KeycloakProvider - Wraps the application and provides auth context
  */
 export function KeycloakProvider({ children }) {
+  const refreshTimer = useRef(null);
+  const sessionActive = useRef(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
@@ -64,6 +67,7 @@ export function KeycloakProvider({ children }) {
 
   // Initialize Keycloak
   useEffect(() => {
+    sessionActive.current = true;
     const initKeycloak = async () => {
       try {
         const config = await getKeycloakConfig();
@@ -81,6 +85,7 @@ export function KeycloakProvider({ children }) {
           silentCheckSsoRedirect: false,
         });
 
+        if (!sessionActive.current) return;
         setKeycloakInstance(kc);
         setAuthenticated(authenticated);
         setInitializing(false);
@@ -91,6 +96,7 @@ export function KeycloakProvider({ children }) {
           
           // Get user info
           const userInfo = await kc.loadUserInfo();
+          if (!sessionActive.current) return;
           setUserInfo(userInfo);
           
           // Start token refresh
@@ -104,24 +110,38 @@ export function KeycloakProvider({ children }) {
     };
 
     initKeycloak();
+    return () => {
+      sessionActive.current = false;
+      if (refreshTimer.current) clearInterval(refreshTimer.current);
+      setAuthToken(null);
+      disconnectSSEClient();
+    };
   }, []);
 
   // Token refresh timer
   const startTokenRefresh = (kc) => {
-    // Refresh token every 10 minutes
-    setInterval(() => {
+    if (refreshTimer.current) clearInterval(refreshTimer.current);
+    refreshTimer.current = setInterval(() => {
       kc.updateToken(70).then((refreshed) => {
+        if (!sessionActive.current) return;
         if (refreshed) {
           // Обновляем токен в API client
           setAuthToken(kc.token);
+          updateSSEAuthToken(kc.token);
           console.log('Token refreshed successfully');
         }
       }).catch((err) => {
         console.error('Failed to refresh token:', err);
         // If refresh fails, user needs to re-login
-        logout();
+        sessionActive.current = false;
+        setAuthToken(null);
+        disconnectSSEClient();
+        setAuthenticated(false);
+        setUserInfo(null);
+        if (refreshTimer.current) clearInterval(refreshTimer.current);
+        kc.logout({ redirectUri: window.location.origin });
       });
-    }, 600000); // 10 minutes
+    }, 30000); // Refresh before the usual short access-token lifetime expires
   };
 
   // Login
@@ -133,6 +153,10 @@ export function KeycloakProvider({ children }) {
 
   // Logout
   const logout = useCallback((options = {}) => {
+    sessionActive.current = false;
+    setAuthToken(null);
+    disconnectSSEClient();
+    if (refreshTimer.current) clearInterval(refreshTimer.current);
     setAuthenticated(false);
     setUserInfo(null);
     if (keycloakInstance) {
@@ -162,9 +186,10 @@ export function KeycloakProvider({ children }) {
     }
     try {
       const refreshed = await keycloakInstance.updateToken(minValidity);
-      if (refreshed) {
+      if (refreshed && sessionActive.current) {
         // Обновляем токен в API client
         setAuthToken(keycloakInstance.token);
+        updateSSEAuthToken(keycloakInstance.token);
         console.log('Token refreshed successfully');
       }
       return refreshed;
