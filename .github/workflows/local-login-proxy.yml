@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - 'nginx/**'
+      - 'scripts/repair-local-login.ps1'
+      - 'scripts/tests/repair-local-login.Tests.ps1'
       - '.github/workflows/local-login-proxy.yml'
   pull_request:
     paths:
       - 'nginx/**'
+      - 'scripts/repair-local-login.ps1'
+      - 'scripts/tests/repair-local-login.Tests.ps1'
       - '.github/workflows/local-login-proxy.yml'
 permissions:
   contents: read
@@ -24,3 +28,15 @@ jobs:
           --add-host keycloak:127.0.0.1 --add-host minio:127.0.0.1
           -v "$PWD/nginx:/etc/nginx/conf.d:ro"
           nginx:1.31.3 nginx -t
+
+  repair-script:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify repair and rollback on Windows PowerShell
+        shell: powershell
+        run: ./scripts/tests/repair-local-login.Tests.ps1
+      - name: Verify repair and rollback on PowerShell 7
+        shell: pwsh
+        run: ./scripts/tests/repair-local-login.Tests.ps1
