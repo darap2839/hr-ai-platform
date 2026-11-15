@@ -9,15 +9,15 @@ if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('hr-ai-collector-test-' + [guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path $testRoot
 $null = New-Item -ItemType File -Path (Join-Path $testRoot 'docker-compose.yml')
-$script:mode = 'normal'
-$script:called = New-Object 'System.Collections.Generic.List[string]'
+$global:hrDiagnosticTestMode = 'normal'
+$global:hrDiagnosticTestCalls = New-Object 'System.Collections.Generic.List[string]'
 
 function global:docker {
     $words = @($args)
-    $script:called.Add(($words -join ' '))
+    $global:hrDiagnosticTestCalls.Add(($words -join ' '))
     $global:LASTEXITCODE = 0
     if ($words[0] -eq 'version') {
-        if ($script:mode -eq 'daemon-down') { $global:LASTEXITCODE = 1; return }
+        if ($global:hrDiagnosticTestMode -eq 'daemon-down') { $global:LASTEXITCODE = 1; return }
         return '28.0.0'
     }
     if ($words[0] -eq 'inspect') { return '[{"com.docker.compose.service":"backend"},"private.example/account/image:tag","sha256:abc","running",0,"healthy"]' }
@@ -39,15 +39,15 @@ try {
     $json = Get-Content -LiteralPath (Join-Path $normalOutput 'report.json') -Raw
     $report = $json | ConvertFrom-Json
     foreach ($expected in @('SYS-DOCKER', 'SYS-COMPOSE', 'SYS-DATABASE', 'SYS-NGINX-HEALTH', 'AI-CHAT')) {
-        if (-not @($report.checks | Where-Object { $_.id -eq $expected -and $_.status -eq 'passed' }).Count) { throw ('Missing successful check: ' + $expected) }
+        if (-not @($report.checks | Where-Object { $_.id -eq $expected -and $_.status -eq 'passed' }).Count) { throw ('Missing successful check: ' + $expected + '; checks=' + ($report.checks | ConvertTo-Json -Compress)) }
     }
     if ($report.containers[0].image -ne 'custom-image-reference-omitted') { throw 'Custom registry reference was retained.' }
     if ($json -match 'PRIVATE_|private.example') { throw 'Private data leaked into report.' }
     if (-not (Test-Path -LiteralPath ($normalOutput + '.zip'))) { throw 'ZIP missing.' }
     if (@($report.checks | Where-Object { $_.id -eq 'SYS-COLLECTOR' }).Count) { throw 'Collector unexpectedly failed.' }
-    if (($script:called -join ' ') -match '\b(pull|build|restart|down|up|run)\b') { throw 'Mutating Docker command detected.' }
+    if (($global:hrDiagnosticTestCalls -join ' ') -match '\b(pull|build|restart|down|up|run)\b') { throw 'Mutating Docker command detected.' }
 
-    $script:mode = 'daemon-down'
+    $global:hrDiagnosticTestMode = 'daemon-down'
     $downOutput = Join-Path $testRoot 'down'
     & $collector -ProjectDirectory $testRoot -OutputDirectory $downOutput -SkipAI
     $down = Get-Content -LiteralPath (Join-Path $downOutput 'report.json') -Raw | ConvertFrom-Json
