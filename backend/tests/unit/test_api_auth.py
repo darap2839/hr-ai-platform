@@ -98,3 +98,8 @@ def test_stream_compatibility_and_public_bootstrap(signing, protected_app):
     assert client.get('/api/auth/keycloak-config').status_code == 200
     assert client.get('/api/sse/notifications').status_code == 401
     assert client.get('/api/sse/notifications', params={'token':signing[2]()} ).status_code == 200
+
+def test_explicit_local_public_port_matches_issuer(signing, monkeypatch):
+    monkeypatch.setenv('KEYCLOAK_URL', 'http://127.0.0.1:18080/auth')
+    token = signing[2](iss='http://127.0.0.1:18080/auth/realms/platform')
+    assert keycloak_auth.verify_keycloak_token(token)['sub'] == 'test-user'

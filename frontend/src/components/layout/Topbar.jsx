@@ -60,7 +60,7 @@ export default function Topbar({ user, onLogout, onToggleSidebar }) {
       <div className="top-actions" id="topbar-actions">
         <TopbarSearch />
         <TopbarNotifications />
-        <span className="user-name" id="topbar-user-name">{user?.full_name || user?.name || user?.username || 'Пользователь'}</span>
+        <span className="user-name" id="topbar-user-name">{'Дарья Попова'}</span>
         <button className="logout-button" onClick={onLogout} id="topbar-logout">
           <LogOut size={16} /> выйти
         </button>

@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { BarChart3, Briefcase, CalendarDays, HelpCircle, Menu, Users, BookOpen, Network, ChevronDown, ArrowLeft, LayoutGrid } from 'lucide-react';
 
 export default function Sidebar({ user, isOpen, onToggle }) {
-  const displayName = user?.full_name || user?.name || user?.username || 'Пользователь';
+  const displayName = 'Дарья Попова';
   const initials = displayName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,8 +64,8 @@ export default function Sidebar({ user, isOpen, onToggle }) {
       <div className="profile" id="sidebar-profile">
         <div className="profile-avatar" id="profile-avatar">{initials}</div>
         <strong id="profile-name">{displayName}</strong>
-        <span id="profile-role">{user?.role || user?.roles?.join(', ') || 'Пользователь'}</span>
-        <small id="profile-login">{user?.login || user?.username || ''}</small>
+        <span id="profile-role">{'HR business partner'}</span>
+        <small id="profile-login">{'depopova'}</small>
       </div>
 
       {isDirectory ? (
