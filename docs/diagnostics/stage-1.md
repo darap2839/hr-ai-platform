@@ -579,3 +579,26 @@ styles.css: пропали полигональный фон, синий вер�
 
 Источники: https://www.keycloak.org/docs/26.7.5/release_notes/index.html ;
 https://github.com/keycloak/keycloak/blob/26.7.1/themes/src/main/resources/theme/keycloak.v2/login/resources/css/styles.css .
+
+## Перезапуск 20.11: GHCR TLS timeout до создания сервисов
+
+Пользователь выполнил docker compose down без --profile ai; основные контейнеры
+удалены, сеть осталась Resource is still in use. Последующий docker compose up
+пытается получить frontend:master из GHCR и завершается TLS handshake timeout;
+backend pull прерван. Это сетевой сбой обращения к registry, не подтверждение
+дефекта Qdrant/Keycloak/модели. На скриншоте localhost:6333 connection refused
+после удаления контейнеров; состояние Qdrant после нового запуска не получено.
+Повторяющиеся Model loaded/Server Ready сами по себе не показывают текущее
+состояние или причину повторного запуска AI Engine. Оставшийся AI-профиль —
+возможное объяснение занятой сети, требует проверки ps, а не удаления сети.
+
+Выявлен недостаток прежних инструкций: разовые overrides не сохраняли
+неизменяемые теги образов и дополнительный порт для обычного последующего up.
+Предлагаемое восстановление — проверить наличие ранее установленных образов
+в локальном cache; при отсутствии существующего auto-override создать
+сохраняемый docker-compose.override.yml с pinned backend 5e192b1 и доступным
+проверенным frontend 87f0fe2 либо 5e192b1, pull_policy never и loopback 18080.
+Если auto-override уже существует, не заменять его без просмотра.
+Запуск --profile ai up -d --pull never --no-build исключает обращение к registry
+и включает AI-профиль. Не удалять data, тома или оставшуюся сеть. Это предложение
+ещё не исполнено на компьютере пользователя; результат требует ps -a.
