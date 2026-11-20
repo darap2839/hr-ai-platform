@@ -39,8 +39,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --no-audit --no-fund
-      - name: Test Bearer headers, authenticated identity and session lifecycle
-        run: npm run test:run -- src/__tests__/api/client.test.js src/__tests__/components/AuthenticatedProfile.test.jsx src/__tests__/components/KeycloakSession.test.jsx
+      - name: Test Bearer headers, requested profile and session/SSE lifecycle
+        run: npm run test:run -- src/__tests__/api/client.test.js src/__tests__/components/AuthenticatedProfile.test.jsx src/__tests__/components/KeycloakSession.test.jsx src/__tests__/api/sse.test.js
   build:
     needs: auth-regressions
     name: Build frontend image
