@@ -69,7 +69,6 @@ function EmployeeModal({ employee, onClose }) {
           <a href={`tel:${employee.phone}`}><Phone size={16} /> Позвонить</a>
         </div>
       </section>
-      <EmployeeModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
     </div>
   );
 }
@@ -134,6 +133,7 @@ export default function OrganizationStructure() {
           </div>
         )}
       </section>
+      <EmployeeModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
     </div>
   );
 }

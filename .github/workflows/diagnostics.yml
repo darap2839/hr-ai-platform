@@ -68,18 +68,7 @@ jobs:
         run: python -m alembic heads | tee reports/migration-heads.txt
       - name: Apply migrations to empty PostgreSQL
         run: python -m alembic upgrade head 2>&1 | tee reports/migrations.log
-      - name: Run backend tests
-        if: ${{ !cancelled() }}
-        run: |
-          docker run -d --name diagnostic-minio -p 127.0.0.1:9000:9000 -e MINIO_ROOT_USER=diagnostic -e MINIO_ROOT_PASSWORD=diagnostic-password minio/minio:RELEASE.2025-04-22T22-12-26Z server /data
-          for attempt in {1..30}; do
-            if curl --fail --silent http://localhost:9000/minio/health/ready; then
-              exit 0
-            fi
-            sleep 2
-          done
-          docker logs diagnostic-minio
-          exit 1
+      # Storage operations are mocked in unit tests; real MinIO needs the live stack.
       - name: Execute backend suite
         if: ${{ !cancelled() }}
         run: python -m pytest --junitxml=reports/junit.xml --cov-report=xml:reports/coverage.xml --cov-report=term-missing

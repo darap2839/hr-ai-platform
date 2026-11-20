@@ -1,33 +1,38 @@
-"""Demo Service - Генерация демо данных"""
+"""Generate the explicit demo dataset using the current persistence contract."""
+from sqlalchemy.orm import Session
+
+from app.core.cache import cache_invalidate
+from app.models import CandidateModel
+from app.repositories.demo_repository import seed_demo_records
+from app.schemas import CandidateCreate, VacancyCreate
+from app.services.vacancy.mapper import VacancyMapper
 
 
 class DemoService:
-    """Сервис для генерации демо данных"""
-    
+    """Create missing demo records; preserve any existing user data."""
+
     @staticmethod
-    def seed_demo_data(db):
-        from app.repositories.vacancy_repo import create_vacancy
-        from app.repositories.candidate_repository import create_candidate
-        from app.repositories.application_repository import create_application
-        from app.schemas import VacancyCreate, CandidateCreate
-        
+    @cache_invalidate(pattern='vacancies:*')
+    def seed_demo(db: Session) -> dict[str, int]:
+        """Return newly created counts; repeated serial calls create no duplicates."""
         vacancies = [
             VacancyCreate(title="Senior Python Developer", department="Engineering", description="Ищем Python разработчика", required_skills=["Python", "FastAPI"]),
             VacancyCreate(title="Frontend Developer", department="Engineering", description="Ищем React разработчика", required_skills=["React", "JavaScript"]),
         ]
-        
-        created_vacancies = [create_vacancy(db, v) for v in vacancies]
-        
         candidates = [
             CandidateCreate(full_name="Иван Иванов", email="ivan@example.com", phone="+79991234567", skills=["Python", "FastAPI"], experience_years=5, resume_text="Опытный Python разработчик"),
             CandidateCreate(full_name="Анна Петрова", email="anna@example.com", phone="+79997654321", skills=["React", "JavaScript"], experience_years=3, resume_text="Frontend разработчик"),
         ]
-        
-        created_candidates = [create_candidate(db, c) for c in candidates]
-        
-        applications = [create_application(db, created_candidates[0].id, created_vacancies[0].id)]
-        
-        return {"vacancies": len(created_vacancies), "candidates": len(created_candidates), "applications": len(applications)}
+        return seed_demo_records(
+            db,
+            [VacancyMapper.to_model(payload) for payload in vacancies],
+            [CandidateModel(**payload.model_dump(exclude={"skills"}), skills=",".join(payload.skills)) for payload in candidates],
+        )
+
+    @staticmethod
+    def seed_demo_data(db: Session) -> dict[str, int]:
+        """Keep compatibility with callers using the previous method name."""
+        return DemoService.seed_demo(db)
 
 
 demo_service = DemoService()
