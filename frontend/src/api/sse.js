@@ -43,6 +43,8 @@ class AdvancedSSEClient {
     this.reconnectAttempts = 0;
     this.listeners = new Map();
     this.heartbeatTimer = null;
+    this.reconnectTimer = null;
+    this.stopped = false;
     this.stats = {
       connected: 0,
       disconnected: 0,
@@ -65,6 +67,7 @@ class AdvancedSSEClient {
       console.warn('[SSE] Already connected or connecting');
       return;
     }
+    this.stopped = false;
     
     try {
       // Build URL with lastEventId for session resumption
@@ -77,19 +80,26 @@ class AdvancedSSEClient {
       }
       
       // Create EventSource
-      this.eventSource = new EventSource(url.toString());
+      const source = new EventSource(url.toString());
+      this.eventSource = source;
+      // Ignore callbacks queued by an older connection during logout/token refresh.
+      const whileCurrent = handler => event => {
+        if (!this.stopped && this.eventSource === source) handler(event);
+      };
+      const onMessage = whileCurrent(this.handleMessage);
+      const onError = whileCurrent(this.handleError);
       
       // Setup handlers
-      this.eventSource.onopen = this.handleOpen;
-      this.eventSource.onmessage = this.handleMessage;
-      this.eventSource.onerror = this.handleError;
+      source.onopen = whileCurrent(this.handleOpen);
+      source.onmessage = onMessage;
+      source.onerror = onError;
       
       // Setup event type listeners
-      this.eventSource.addEventListener('notification_new', this.handleMessage);
-      this.eventSource.addEventListener('notification_read', this.handleMessage);
-      this.eventSource.addEventListener('notification_read_all', this.handleMessage);
-      this.eventSource.addEventListener('heartbeat', this.handleMessage);
-      this.eventSource.addEventListener('error', this.handleError);
+      source.addEventListener('notification_new', onMessage);
+      source.addEventListener('notification_read', onMessage);
+      source.addEventListener('notification_read_all', onMessage);
+      source.addEventListener('heartbeat', onMessage);
+      source.addEventListener('error', onError);
       
     } catch (error) {
       console.error('[SSE] Connection error:', error);
@@ -101,6 +111,11 @@ class AdvancedSSEClient {
    * Отключиться от SSE потока
    */
   disconnect() {
+    this.stopped = true;
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.clearHeartbeat();
+    this.isConnected = false;
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
@@ -196,6 +211,7 @@ class AdvancedSSEClient {
    * Обработка ошибки
    */
   handleError(error) {
+    if (this.stopped || !this.eventSource) return;
     this.stats.errors++;
     console.error('[SSE] Error:', error);
     
@@ -204,6 +220,7 @@ class AdvancedSSEClient {
     this.eventSource.close();
     this.eventSource = null;
     this.isConnected = false;
+    this.clearHeartbeat();
     
     // Schedule reconnect with exponential backoff
     this.scheduleReconnect();
@@ -225,6 +242,7 @@ class AdvancedSSEClient {
    * Планировать переподключение с exponential backoff
    */
   scheduleReconnect() {
+    if (this.stopped) return;
     // Stop any existing reconnect timer
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -243,6 +261,7 @@ class AdvancedSSEClient {
     
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
+      if (this.stopped) return;
       this.stats.reconnects++;
       this.connect();
     }, delay);

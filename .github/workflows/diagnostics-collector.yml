@@ -1,0 +1,27 @@
+name: "Stage 1: Windows collector"
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/collect-diagnostics.ps1'
+      - 'scripts/tests/collect-diagnostics.Tests.ps1'
+      - '.github/workflows/diagnostics-collector.yml'
+  pull_request:
+    paths:
+      - 'scripts/collect-diagnostics.ps1'
+      - 'scripts/tests/collect-diagnostics.Tests.ps1'
+      - '.github/workflows/diagnostics-collector.yml'
+permissions:
+  contents: read
+jobs:
+  windows-powershell:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Windows PowerShell 5.1 collector offline
+        shell: powershell
+        run: ./scripts/tests/collect-diagnostics.Tests.ps1
+      - name: Test PowerShell 7 collector offline
+        shell: pwsh
+        run: ./scripts/tests/collect-diagnostics.Tests.ps1

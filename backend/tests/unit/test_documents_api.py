@@ -120,20 +120,19 @@ def test_permanently_delete_document_keeps_record_when_file_deletion_fails():
 
 
 @pytest.mark.parametrize("deleted", [False, True])
-def test_list_documents_applies_deleted_scope(deleted):
-    query = MagicMock()
-    query.filter.return_value = query
-    query.offset.return_value = query
-    query.limit.return_value = query
-    query.all.return_value = []
-    db = MagicMock()
-    db.query.return_value = query
-
-    list_documents(deleted=deleted, db=db)
-
-    deleted_expression = query.filter.call_args_list[0].args[0]
-    assert deleted_expression.operator.__name__ == "eq"
-    assert deleted_expression.right.value is deleted
+def test_list_documents_applies_deleted_scope(deleted, test_db):
+    """Verify returned rows instead of SQLAlchemy's internal boolean nodes."""
+    from app.models import DocumentModel
+    active = DocumentModel(title="Active", file_path="active.txt", is_deleted=False)
+    removed = DocumentModel(title="Deleted", file_path="deleted.txt", is_deleted=True)
+    missing_file = DocumentModel(title="No source", file_path=None, is_deleted=deleted)
+    test_db.add_all([active, removed, missing_file])
+    test_db.commit()
+    with patch("app.api.documents.minio_service.file_exists", return_value=True):
+        result = list_documents(deleted=deleted, limit=20, offset=0, db=test_db)
+    expected = removed if deleted else active
+    assert [document.id for document in result] == [expected.id]
+    assert all(document.is_deleted is deleted for document in result)
 
 
 def test_restore_document_preserves_previous_status():

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { apiRequest, hrApi, notificationsApi } from '../../api/client'
+import { apiRequest, hrApi, notificationsApi, setAuthToken } from '../../api/client'
 
 // Mock fetch
 global.fetch = vi.fn()
@@ -7,6 +7,7 @@ global.fetch = vi.fn()
 describe('API Client', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    setAuthToken(null)
   })
 
   describe('apiRequest', () => {
@@ -19,7 +20,7 @@ describe('API Client', () => {
 
       const result = await apiRequest('/test')
 
-      expect(global.fetch).toHaveBeenCalledWith('', {
+      expect(global.fetch).toHaveBeenCalledWith('/test', {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -112,3 +113,16 @@ describe('API Client', () => {
     })
   })
 })
+
+
+describe('Authenticated requests', () => {
+  it('preserves Bearer authentication when options include custom headers', async () => {
+    setAuthToken('synthetic-token');
+    global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await apiRequest('/api/candidates', { method: 'PUT', headers: { 'X-Test': 'yes' } });
+    expect(global.fetch).toHaveBeenLastCalledWith('/api/candidates', expect.objectContaining({
+      method: 'PUT', headers: expect.objectContaining({ Authorization: 'Bearer synthetic-token', 'X-Test': 'yes' }),
+    }));
+    setAuthToken(null);
+  });
+});

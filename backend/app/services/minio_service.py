@@ -41,21 +41,22 @@ class MinioService:
                 secret_key=self.secret_key,
                 secure=self.use_ssl
             )
-            self._ensure_bucket()
         else:
             self.client = None
             print("⚠️ MinIO not available. Install with: pip install minio")
         
         self._initialized = True
     
-    def _ensure_bucket(self):
-        """Create bucket if it doesn't exist"""
+    def _ensure_bucket(self) -> bool:
+        """Create the bucket on first write, without network access on import."""
         try:
             if not self.client.bucket_exists(self.bucket):
                 self.client.make_bucket(self.bucket)
                 print(f"✅ Created bucket: {self.bucket}")
+            return True
         except S3Error as e:
             print(f"❌ Error creating bucket: {e}")
+            return False
     
     def upload_file(self, file_bytes: bytes, filename: str, content_type: str = "application/octet-stream") -> Optional[str]:
         """Upload file to MinIO. Returns file_path in MinIO."""
@@ -63,6 +64,8 @@ class MinioService:
             return None
         
         try:
+            if not self._ensure_bucket():
+                return None
             now = datetime.now()
             date_path = now.strftime("%Y/%m/%d")
             unique_filename = f"{uuid.uuid4().hex[:8]}-{filename}"

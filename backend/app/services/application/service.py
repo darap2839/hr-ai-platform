@@ -3,7 +3,7 @@ import json
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app.models import CandidateModel, VacancyModel, ApplicationStage as ModelApplicationStage
+from app.models import ApplicationModel, ApplicationStage as ModelApplicationStage
 from app.schemas import Application, ApplicationCreate, StageUpdate
 from app.services.application.validation import ApplicationValidator
 from app.repositories.application_repository import (
@@ -11,6 +11,8 @@ from app.repositories.application_repository import (
     save_ai_analysis, update_stage, get_candidate_from_repository, get_vacancy_from_repository
 )
 from app.services.ai.analyzer import AIAnalyzer
+from app.services.candidate.service import CandidateService
+from app.services.vacancy.service import VacancyService
 from app.services.notification.service import notification_service
 from app.schemas import NotificationType
 
@@ -19,10 +21,24 @@ class ApplicationService:
     """Сервис для работы с откликами"""
     
     @staticmethod
+    def _to_schema(application: ApplicationModel) -> Application:
+        """Decode persisted JSON analysis before validating the API response."""
+        analysis = application.ai_analysis
+        if isinstance(analysis, str):
+            analysis = json.loads(analysis)
+        return Application.model_validate({
+            'id': application.id,
+            'candidate_id': application.candidate_id,
+            'vacancy_id': application.vacancy_id,
+            'stage': application.stage,
+            'ai_analysis': analysis,
+        })
+
+    @staticmethod
     def list_applications(db: Session) -> list[Application]:
         """Получить все отклики"""
         applications = list_applications(db)
-        return [Application.model_validate(a) for a in applications]
+        return [ApplicationService._to_schema(a) for a in applications]
     
     @staticmethod
     def create_application(db: Session, payload: ApplicationCreate) -> Application:
@@ -47,22 +63,15 @@ class ApplicationService:
             entity_id=application.id
         )
         
-        return Application.model_validate(application)
+        return ApplicationService._to_schema(application)
     
     @staticmethod
     def analyze_application(db: Session, application_id: int) -> Application:
         """Провести AI анализ отклика"""
         application = get_application_or_404(db, application_id)
         
-        candidate = db.query(CandidateModel).filter(CandidateModel.id == application.candidate_id).first()
-        vacancy = db.query(VacancyModel).filter(VacancyModel.id == application.vacancy_id).first()
-        
-        if not candidate or not vacancy:
-            raise HTTPException(status_code=404, detail="Кандидат или вакансия не найдены")
-        
-        from app.schemas import Candidate, Vacancy
-        candidate_data = Candidate.model_validate(candidate).model_dump()
-        vacancy_data = Vacancy.model_validate(vacancy).model_dump()
+        candidate_data = CandidateService.get_candidate(db, application.candidate_id).model_dump()
+        vacancy_data = VacancyService.get_vacancy(db, application.vacancy_id).model_dump()
         
         analysis = AIAnalyzer.analyze_candidate(candidate_data, vacancy_data)
         updated = save_ai_analysis(db, application, json.dumps(analysis, ensure_ascii=False))
@@ -75,22 +84,15 @@ class ApplicationService:
             entity_id=application.id
         )
         
-        return Application.model_validate(updated)
+        return ApplicationService._to_schema(updated)
     
     @staticmethod
     def get_interview_questions(db: Session, application_id: int) -> dict:
         """Получить вопросы для интервью"""
         application = get_application_or_404(db, application_id)
         
-        candidate = db.query(CandidateModel).filter(CandidateModel.id == application.candidate_id).first()
-        vacancy = db.query(VacancyModel).filter(VacancyModel.id == application.vacancy_id).first()
-        
-        if not candidate or not vacancy:
-            raise HTTPException(status_code=404, detail="Кандидат или вакансия не найдены")
-        
-        from app.schemas import Candidate, Vacancy
-        candidate_data = Candidate.model_validate(candidate).model_dump()
-        vacancy_data = Vacancy.model_validate(vacancy).model_dump()
+        candidate_data = CandidateService.get_candidate(db, application.candidate_id).model_dump()
+        vacancy_data = VacancyService.get_vacancy(db, application.vacancy_id).model_dump()
         
         return AIAnalyzer.generate_interview_questions(candidate_data, vacancy_data)
     
@@ -109,4 +111,4 @@ class ApplicationService:
                 entity_id=application_id
             )
         
-        return Application.model_validate(updated)
+        return ApplicationService._to_schema(updated)

@@ -82,12 +82,14 @@ class CandidateService:
         update_data = payload.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             if value is not None:
+                if field == 'skills':
+                    value = ','.join(value)
                 setattr(candidate, field, value)
         
         db.commit()
         db.refresh(candidate)
         
-        return Candidate.model_validate(candidate)
+        return Candidate.model_validate(CandidateService._normalize_candidate(candidate))
     
     @staticmethod
     def delete_candidate(db: Session, candidate_id: int) -> dict:

@@ -36,12 +36,12 @@ export async function apiRequest(path, options = {}) {
   const authHeaders = getAuthHeaders();
   
   const response = await fetch(`${API_URL}${path}`, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
       ...authHeaders,
       ...(options.headers || {}),
     },
-    ...options,
   });
 
   if (!response.ok) {

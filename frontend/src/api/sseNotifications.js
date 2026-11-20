@@ -31,11 +31,24 @@ export function initSSEClient(authToken) {
   }
   
   sseClient = new AdvancedSSEClient(authToken, {
-    baseUrl: import.meta.env.VITE_API_URL + '/api/sse/notifications',
+    baseUrl: (import.meta.env.VITE_API_URL || '') + '/api/sse/notifications',
     heartbeatTimeout: 30000,
   });
   
   return sseClient;
+}
+
+export function updateSSEAuthToken(token) {
+  if (sseClient && sseClient.authToken !== token) {
+    sseClient.disconnect();
+    sseClient.authToken = token;
+    sseClient.connect();
+  }
+}
+
+export function disconnectSSEClient() {
+  if (sseClient) sseClient.disconnect();
+  sseClient = null;
 }
 
 /**
