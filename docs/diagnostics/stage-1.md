@@ -856,3 +856,25 @@ storage-операции там mocked. GitHub Actions и установка п�
 исправлены demo, storage import, проверки фильтра и карточка справочника.
 Этап 1 остаётся открыт по live refresh/SSE delivery, сквозной приёмке и
 документированным ограничениям семантической функции. К этапу 2 не переходили.
+
+
+## Actions после разбора архива
+
+Для code commit ba7f33d1a8cf5bd6559289503343986407b1a6ef:
+- diagnostics 44765339392 = success: backend suite, миграции на пустой
+  PostgreSQL, frontend suite/build, Compose validation;
+- PR diagnostics 44765351045 = success;
+- frontend CI 44765339138 = success, полный suite и публикация образа;
+- backend CI 44765339395: полный suite gate = success; сборка/публикация
+  backend image на момент этой записи ещё in_progress, не объявляется готовой;
+- functional collector 44765351107, Windows collector 44765351214,
+  login proxy 44765351190 = success. Это проверки инструментов, не новый
+  пользовательский live-прогон Docker Desktop.
+
+Прежняя блокировка полного диагностического CI снята в проверенном составе.
+На пользовательском стенде эти новые изменения не установлены; исходники
+в Windows также пока не синхронизированы. При синхронизации нужно сохранить
+untracked файлы: новые demo/candidate tests из архива теперь tracked в ветке.
+Оставшиеся непрошедшие RAG-модули явно учитываются отдельно (D-19), а не
+считаются работающей частью runtime. Реальные refresh/heartbeat/доставка
+и сквозная приёмка остаются в первом этапе.
