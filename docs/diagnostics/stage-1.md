@@ -556,3 +556,26 @@ keycloak содержит realm/realm.json, отдельные файлы тем
 не применять: он меняет адрес провайдера и пересоздаёт контейнеры до завершения
 новой диагностики. Этап 1 остаётся открыт; текущее оформление не объявляется
 исправленным по одному лишь отсутствию theme-файлов в Git.
+
+## Фактические сведения о теме с локального стенда
+
+Пользователь предоставил: Keycloak 26.7.1/JVM 21.0.12; SELECT realm для platform
+показывает пустой login_theme; Get-ChildItem keycloak/themes не выводит файлов.
+Выполнение через терминал IDE не меняет смысл проверок (приглашение PS означает
+PowerShell внутри IDE). Изменения настроек этими командами не выполнялись.
+
+По исходникам Keycloak 26.7.1 DefaultThemeSelectorProvider сначала рассматривает
+client attribute login_theme, затем настройку realm, затем тему по умолчанию.
+Поэтому пустого realm-поля недостаточно для исключения client override.
+Документация Keycloak 26 указывает keycloak.v2 как default для realm без явной темы.
+
+Сопоставление последнего скриншота со штатным keycloak.v2/login/resources/css/
+styles.css: пропали полигональный фон, синий верх карточки, uppercase/spacing
+заголовка; вместо одноколоночного layout видны карточка слева и название справа.
+Это согласуется с загрузкой общих PatternFly-стилей без собственного styles.css,
+но по скриншоту сетевой отказ не доказывается. Следующая read-only проверка —
+статус/URL styles.css в Network браузера на реальной странице входа. До неё
+переключение темы, изменение URL провайдера и очистка/перезапуск не выполняются.
+
+Источники: https://www.keycloak.org/docs/26.7.5/release_notes/index.html ;
+https://github.com/keycloak/keycloak/blob/26.7.1/themes/src/main/resources/theme/keycloak.v2/login/resources/css/styles.css .
